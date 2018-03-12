@@ -36,23 +36,23 @@ namespace AggregateSource.EventStore.Snapshots
         {
             if (rootFactory == null)
             {
-                throw new ArgumentNullException("rootFactory");
+                throw new ArgumentNullException(nameof(rootFactory));
             }
             if (unitOfWork == null)
             {
-                throw new ArgumentNullException("unitOfWork");
+                throw new ArgumentNullException(nameof(unitOfWork));
             }
             if (connection == null)
             {
-                throw new ArgumentNullException("connection");
+                throw new ArgumentNullException(nameof(connection));
             }
             if (configuration == null)
             {
-                throw new ArgumentNullException("configuration");
+                throw new ArgumentNullException(nameof(configuration));
             }
             if (reader == null)
             {
-                throw new ArgumentNullException("reader");
+                throw new ArgumentNullException(nameof(reader));
             }
             _rootFactory = rootFactory;
             _unitOfWork = unitOfWork;

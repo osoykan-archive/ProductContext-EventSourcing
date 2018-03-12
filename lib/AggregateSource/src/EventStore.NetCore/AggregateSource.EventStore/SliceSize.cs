@@ -18,8 +18,9 @@ namespace AggregateSource.EventStore
         {
             if (value < 1)
             {
-                throw new ArgumentOutOfRangeException("value", Resources.SliceSize_GreaterThanOne);
+                throw new ArgumentOutOfRangeException(nameof(value), Resources.SliceSize_GreaterThanOne);
             }
+
             _value = value;
         }
 

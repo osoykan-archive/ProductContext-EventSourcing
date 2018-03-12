@@ -22,22 +22,10 @@ namespace AggregateSource.EventStore
             IStreamNameResolver streamNameResolver,
             IStreamUserCredentialsResolver streamUserCredentialsResolver)
         {
-            if (deserializer == null)
-            {
-                throw new ArgumentNullException("deserializer");
-            }
-            if (streamNameResolver == null)
-            {
-                throw new ArgumentNullException("streamNameResolver");
-            }
-            if (streamUserCredentialsResolver == null)
-            {
-                throw new ArgumentNullException("streamUserCredentialsResolver");
-            }
             SliceSize = sliceSize;
-            Deserializer = deserializer;
-            StreamNameResolver = streamNameResolver;
-            StreamUserCredentialsResolver = streamUserCredentialsResolver;
+            Deserializer = deserializer ?? throw new ArgumentNullException(nameof(deserializer));
+            StreamNameResolver = streamNameResolver ?? throw new ArgumentNullException(nameof(streamNameResolver));
+            StreamUserCredentialsResolver = streamUserCredentialsResolver ?? throw new ArgumentNullException(nameof(streamUserCredentialsResolver));
         }
 
         /// <summary>

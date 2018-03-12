@@ -19,8 +19,9 @@ namespace AggregateSource.EventStore.Resolvers
         {
             if (identifier == null)
             {
-                throw new ArgumentNullException("identifier");
+                throw new ArgumentNullException(nameof(identifier));
             }
+
             return identifier;
         }
     }

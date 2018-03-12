@@ -2,19 +2,21 @@
 
 namespace ProductContext.Domain.Projections
 {
-    public class CheckpointProjection
+    public class ProjectionCheckpoint
     {
         public string Projection { get; set; }
 
         public string Position { get; set; }
     }
 
-    public class CheckpointProjectionMap : AutoClassMapper<CheckpointProjection>
+    public class ProjectionCheckpointMap : ClassMapper<ProjectionCheckpoint>
     {
-        public CheckpointProjectionMap()
+        public ProjectionCheckpointMap()
         {
             Table("ProjectionCheckpoint");
             Schema("dbo");
+            Map(x => x.Projection).Key(KeyType.Assigned);
+            AutoMap();
         }
     }
 }

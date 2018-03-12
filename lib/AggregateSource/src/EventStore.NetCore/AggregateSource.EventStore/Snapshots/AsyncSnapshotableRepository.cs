@@ -67,8 +67,7 @@ namespace AggregateSource.EventStore.Snapshots
         /// <returns>The found <typeparamref name="TAggregateRoot" />, or empty if not found.</returns>
         public async Task<Optional<TAggregateRoot>> GetOptionalAsync(string identifier)
         {
-            Aggregate aggregate;
-            if (_unitOfWork.TryGet(identifier, out aggregate))
+            if (_unitOfWork.TryGet(identifier, out Aggregate aggregate))
             {
                 return new Optional<TAggregateRoot>((TAggregateRoot)aggregate.Root);
             }

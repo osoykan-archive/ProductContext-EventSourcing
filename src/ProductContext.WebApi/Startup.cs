@@ -7,13 +7,16 @@ using AggregateSource;
 using AggregateSource.EventStore;
 using AggregateSource.EventStore.Resolvers;
 
+using Dapper;
+
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.SystemData;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
+using Newtonsoft.Json;
 
 using NodaTime;
 
@@ -22,6 +25,8 @@ using ProductContext.Domain.Projections;
 using ProductContext.Framework;
 
 using Projac.Connector.NetCore;
+
+using Serilog;
 
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -62,7 +67,11 @@ namespace ProductContext.WebApi
                     Product.Factory,
                     concurrentUnitOfWork,
                     esConnection,
-                    new EventReaderConfiguration(new SliceSize(10), defaultSerializer, new PassThroughStreamNameResolver(), new FixedStreamUserCredentialsResolver(new UserCredentials("admin", "changeit"))));
+                    new EventReaderConfiguration(
+                        new SliceSize(500),
+                        defaultSerializer,
+                        new PassThroughStreamNameResolver(),
+                        new NoStreamUserCredentialsResolver()));
 
                 Func<DateTime> getDatetime = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
                 var productCommandHandlers = new ProductCommandHandlers(productRepository, getDatetime);
@@ -94,8 +103,12 @@ namespace ProductContext.WebApi
             string projectionsConnectionString = Configuration["Data:Projections:ConnectionString"];
             var connection = new SqlConnection(projectionsConnectionString);
 
+            var projectionMapper = new ProjectionTypeMapper();
+            projectionMapper.HandledBy<Events.V1.ProductCreated, ProductProjection>();
+
             var handlers = new List<ConnectedProjectionHandler<SqlConnection>>();
             handlers.AddRange(new ProductProjector());
+            handlers.AddRange(new CheckpointProjector());
 
             var projector = new ConnectedProjector<SqlConnection>(
                 Resolve.WhenEqualToHandlerMessageType(handlers.ToArray())
@@ -111,27 +124,55 @@ namespace ProductContext.WebApi
             var deserializer = new DefaultEventDeserializer();
 
             esConnection.SubscribeToAllFrom(
-                Position.Start,
+                Position.Start, 
                 new CatchUpSubscriptionSettings(10000, 500, true, false),
-                EventAppeared(projectFunc, deserializer),
-                LiveProcessingStarted(projectFunc, deserializer),
-                SubscriptionDropped(projectFunc, deserializer));
+                EventAppeared(projectFunc, deserializer, projectionMapper),
+                LiveProcessingStarted(projectFunc, deserializer, projectionMapper),
+                SubscriptionDropped(projectFunc, deserializer, projectionMapper));
         }
 
-        private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
+        private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(
+            Func<object, Task> projector,
+            DefaultEventDeserializer deserializer,
+            ProjectionTypeMapper projectionMapper) =>
             async (subscription, reason, ex) =>
             {
+                // TODO: Reevaluate stopping subscriptions when issues with reconnect get fixed.
+                // https://github.com/EventStore/EventStore/issues/1127
+                // https://groups.google.com/d/msg/event-store/AdKzv8TxabM/VR7UDIRxCgAJ
+
                 subscription.Stop();
 
-                await InitProjections();
+                switch (reason)
+                {
+                    case SubscriptionDropReason.UserInitiated:
+                        Log.Debug("{projection} projection stopped gracefully.", subscription);
+                        break;
+                    case SubscriptionDropReason.SubscribingError:
+                    case SubscriptionDropReason.ServerError:
+                    case SubscriptionDropReason.ConnectionClosed:
+                    case SubscriptionDropReason.CatchUpError:
+                    case SubscriptionDropReason.ProcessingQueueOverflow:
+                    case SubscriptionDropReason.EventHandlerException:
+                        Log.Error(
+                            "{projection} projection stopped because of a transient error ({reason}). " +
+                            "Attempting to restart...",
+                            ex, subscription.SubscriptionName, reason);
+                        await Task.Run(InitProjections);
+                        break;
+                    default:
+                        Log.Fatal(
+                            "{projection} projection stopped because of an internal error ({reason}). " +
+                            "Please check your logs for details.",
+                            ex, subscription.SubscriptionName, reason);
+                        break;
+                }
             };
 
-        private Action<EventStoreCatchUpSubscription> LiveProcessingStarted(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
-            subscription =>
-            {
-            };
+        private Action<EventStoreCatchUpSubscription> LiveProcessingStarted(Func<object, Task> projector, DefaultEventDeserializer deserializer, ProjectionTypeMapper projectionMapper) =>
+            _ => Log.Debug("projection has caught up, now processing live!");
 
-        private Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> EventAppeared(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
+        private Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> EventAppeared(Func<object, Task> projector, DefaultEventDeserializer deserializer, ProjectionTypeMapper projectionMapper) =>
             async (subscription, e) =>
             {
                 // pass system events ;)
@@ -141,6 +182,8 @@ namespace ProductContext.WebApi
                 }
 
                 await projector(deserializer.Deserialize(e));
+
+                await projector(new EventProjected(projectionMapper.WhoHandlesMe(e.Event.EventType).Name, JsonConvert.SerializeObject(e.OriginalPosition)));
             };
 
         private static async Task SetupProjectionsDb(ConnectedProjector<SqlConnection> projector, SqlConnection connection)

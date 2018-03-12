@@ -18,14 +18,6 @@ namespace ProductContext.Domain.Projections
     {
     }
 
-    public class CreateCheckpointSchema
-    {
-    }
-
-    public class DropCheckpointSchema
-    {
-    }
-
     public class ProductProjector : ConnectedProjection<SqlConnection>
     {
         public ProductProjector()
@@ -65,22 +57,6 @@ namespace ProductContext.Domain.Projections
                 connection.Execute(
                     @"IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='Product' AND XTYPE='U')
                         DROP TABLE [dbo].[Product]");
-            });
-
-            When<DropCheckpointSchema>((connection, @event) =>
-            {
-                connection.Execute(
-                    @"IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='[ProjectionCheckpoint]' AND XTYPE='U')
-                        DROP TABLE [dbo].[ProjectionCheckpoint]");
-            });
-
-            When<CreateCheckpointSchema>((connection, @event) =>
-            {
-                connection.Execute(@"IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='ProjectionCheckpoint' AND XTYPE='U')
-                        CREATE TABLE [dbo].[ProjectionCheckpoint](
-                            [Projection] NVARCHAR(MAX) NOT NULL,
-	                        [Position] NVARCHAR(MAX) NOT NULL
-                        ) ON [PRIMARY]");
             });
         }
     }

@@ -22,15 +22,15 @@ namespace AggregateSource.EventStore.Snapshots
         {
             if (deserializer == null)
             {
-                throw new ArgumentNullException("deserializer");
+                throw new ArgumentNullException(nameof(deserializer));
             }
             if (streamNameResolver == null)
             {
-                throw new ArgumentNullException("streamNameResolver");
+                throw new ArgumentNullException(nameof(streamNameResolver));
             }
             if (streamUserCredentialsResolver == null)
             {
-                throw new ArgumentNullException("streamUserCredentialsResolver");
+                throw new ArgumentNullException(nameof(streamUserCredentialsResolver));
             }
             Deserializer = deserializer;
             StreamNameResolver = streamNameResolver;

@@ -23,11 +23,11 @@ namespace AggregateSource.EventStore.Snapshots
         {
             if (connection == null)
             {
-                throw new ArgumentNullException("connection");
+                throw new ArgumentNullException(nameof(connection));
             }
             if (configuration == null)
             {
-                throw new ArgumentNullException("configuration");
+                throw new ArgumentNullException(nameof(configuration));
             }
             Connection = connection;
             Configuration = configuration;
@@ -61,7 +61,7 @@ namespace AggregateSource.EventStore.Snapshots
         {
             if (identifier == null)
             {
-                throw new ArgumentNullException("identifier");
+                throw new ArgumentNullException(nameof(identifier));
             }
             var streamUserCredentials = Configuration.StreamUserCredentialsResolver.Resolve(identifier);
             var streamName = Configuration.StreamNameResolver.Resolve(identifier);

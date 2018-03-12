@@ -18,11 +18,7 @@ namespace AggregateSource.EventStore.Resolvers
         /// <exception cref="System.ArgumentNullException">Thrown when the <paramref name="fixedUserCredentials" /> is <c>null</c>.</exception>
         public FixedStreamUserCredentialsResolver(UserCredentials fixedUserCredentials)
         {
-            if (fixedUserCredentials == null)
-            {
-                throw new ArgumentNullException("fixedUserCredentials");
-            }
-            _fixedUserCredentials = fixedUserCredentials;
+            _fixedUserCredentials = fixedUserCredentials ?? throw new ArgumentNullException(nameof(fixedUserCredentials));
         }
 
         /// <summary>
@@ -36,7 +32,7 @@ namespace AggregateSource.EventStore.Resolvers
         {
             if (identifier == null)
             {
-                throw new ArgumentNullException("identifier");
+                throw new ArgumentNullException(nameof(identifier));
             }
             return _fixedUserCredentials;
         }
