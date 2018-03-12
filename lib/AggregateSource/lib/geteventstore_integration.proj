@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<Project DefaultTargets="Run" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\packages\MSBuildTasks.1.4.0.56\tools</MSBuildCommunityTasksPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"/>
+
+  <Target Name="Run">
+    <WebDownload 
+      Condition="!Exists('$(MSBuildProjectDirectory)\eventstore_license.txt')"
+      FileUri="https://raw.githubusercontent.com/EventStore/EventStore/master/LICENSE.md" 
+      FileName="$(MSBuildProjectDirectory)\eventstore_license.txt" />
+    <WebDownload 
+      Condition="!Exists('$(MSBuildProjectDirectory)\EventStore-OSS-Win-v3.0.1.zip')"
+      FileUri="http://download.geteventstore.com/binaries/EventStore-OSS-Win-v3.0.1.zip" 
+      FileName="$(MSBuildProjectDirectory)\EventStore-OSS-Win-v3.0.1.zip" />
+    <Unzip 
+      Condition="!Exists('$(MSBuildProjectDirectory)\eventstore3')"
+      ZipFileName="$(MSBuildProjectDirectory)\EventStore-OSS-Win-v3.0.1.zip" 
+      TargetDirectory="$(MSBuildProjectDirectory)\eventstore3"/>
+  </Target>
+</Project>

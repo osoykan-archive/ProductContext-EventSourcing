@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AggregateSource.Content.ExplicitRouting\AggregateRootEntity.cs" Link="AggregateRootEntity.cs" />
+    <Compile Include="..\AggregateSource.Content.ExplicitRouting\Entity.cs" Link="Entity.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
+    <PackageReference Include="Nunit3TestAdapter" Version="3.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AggregateSource\AggregateSource.csproj" />
+  </ItemGroup>
+
+</Project>

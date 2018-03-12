@@ -1,0 +1,22 @@
+version: 1.1.0.{build}
+image: Visual Studio 2017
+branches:
+  only:
+  - master
+configuration: Release
+platform: Any CPU
+build_script:
+  - cmd: build.cmd Release
+build:
+  verbosity: minimal
+test: auto
+
+artifacts:
+  - path: 'Artifacts\Packages\*.nupkg'
+
+assembly_info:
+  patch: true
+  file: version.cs
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'

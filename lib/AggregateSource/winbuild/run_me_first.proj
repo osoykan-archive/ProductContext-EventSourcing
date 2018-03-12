@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<Project DefaultTargets="Run" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <RootPath>$(MSBuildProjectDirectory)\..</RootPath>
+    <NuGetExe Condition="$(NuGetExe) == ''">$(RootPath)\.nuget\nuget.exe</NuGetExe>
+  </PropertyGroup>
+
+  <Target Name="Run">
+    <CallTarget Targets="DownloadOrUpdateNuGet;RestorePackages" />
+    <MSBuild Projects="$(RootPath)\lib\geteventstore_integration.proj" />
+  </Target>
+
+  <Target Name="DownloadOrUpdateNuGet">
+    <Exec Command="$(NuGetExe) update -self" Condition="Exists('$(NuGetExe)')"/>
+    <DownloadNuGet OutputFilename="$(NuGetExe)" Condition="!Exists('$(NuGetExe)')"/>
+  </Target>
+
+  <Target Name="RestorePackages">
+    <ItemGroup>
+      <BuildPackageConfigs Include="$(RootPath)\winbuild\packages.config" />
+      <LibPackageConfigs Include="$(RootPath)\lib\packages.config" />
+      <SourceCorePackageConfigs Include="$(RootPath)\src\Core\**\packages.config" />
+      <SourceEventStorePackageConfigs Include="$(RootPath)\src\EventStore\**\packages.config" />
+      <SourceNEventStorePackageConfigs Include="$(RootPath)\src\NEventStore\**\packages.config" />
+      <SourceTestingPackageConfigs Include="$(RootPath)\src\Testing\**\packages.config" />
+      <SourceSampleSourcePackageConfigs Include="$(RootPath)\src\SampleSource\packages.config" />
+      <SourceReactivePackageConfigs Include="$(RootPath)\src\Reactive\**\packages.config" />
+      <SourceRecipesPackageConfigs Include="$(RootPath)\src\Recipes\EventStoreShopping\**\packages.config" />
+    </ItemGroup>
+    <Exec Command='$(NuGetExe) sources Remove -Name "NEventStore CI package source"' ContinueOnError="True" />
+    <Exec Command='$(NuGetExe) sources Add -Name "NEventStore CI package source" -Source "https://www.myget.org/F/neventstore-ci/"'
+          ContinueOnError="True" />
+    <Exec Command='$(NuGetExe) install %(BuildPackageConfigs.Identity) -o "$(RootPath)\winbuild\packages"' />
+    <Exec Command='$(NuGetExe) install %(LibPackageConfigs.Identity) -o "$(RootPath)\lib\packages"' />
+    <Exec Command='$(NuGetExe) install %(SourceCorePackageConfigs.Identity) -o "$(RootPath)\src\Core\packages"' />
+    <Exec Command='$(NuGetExe) install %(SourceEventStorePackageConfigs.Identity) -o "$(RootPath)\src\EventStore\packages"' />
+    <Exec Command='$(NuGetExe) install %(SourceNEventStorePackageConfigs.Identity) -o "$(RootPath)\src\NEventStore\packages"' />
+    <Exec Command='$(NuGetExe) install %(SourceTestingPackageConfigs.Identity) -o "$(RootPath)\src\Testing\packages"' />
+    <Exec Command='$(NuGetExe) install %(SourceReactivePackageConfigs.Identity) -o "$(RootPath)\src\Reactive\packages"' />
+    <Exec Command='$(NuGetExe) install %(SourceSampleSourcePackageConfigs.Identity) -o "$(RootPath)\src\packages"' />
+    <Exec Command='$(NuGetExe) install %(SourceRecipesPackageConfigs.Identity) -o "$(RootPath)\src\Recipes\EventStoreShopping\packages"' />
+  </Target>
+
+  <!-- Copied from NuGet.targets -->
+  <UsingTask TaskName="DownloadNuGet" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+      <ParameterGroup>
+          <OutputFilename ParameterType="System.String" Required="true" />
+      </ParameterGroup>
+      <Task>
+          <Reference Include="System.Core" />
+          <Using Namespace="System" />
+          <Using Namespace="System.IO" />
+          <Using Namespace="System.Net" />
+          <Using Namespace="Microsoft.Build.Framework" />
+          <Using Namespace="Microsoft.Build.Utilities" />
+          <Code Type="Fragment" Language="cs">
+              <![CDATA[
+              try {
+                  OutputFilename = Path.GetFullPath(OutputFilename);
+
+                  Log.LogMessage("Downloading latest version of NuGet.exe...");
+                  WebClient webClient = new WebClient();
+                  webClient.DownloadFile("https://nuget.org/nuget.exe", OutputFilename);
+
+                  return true;
+              }
+              catch (Exception ex) {
+                  Log.LogErrorFromException(ex);
+                  return false;
+              }
+          ]]>
+          </Code>
+      </Task>
+  </UsingTask>
+</Project>

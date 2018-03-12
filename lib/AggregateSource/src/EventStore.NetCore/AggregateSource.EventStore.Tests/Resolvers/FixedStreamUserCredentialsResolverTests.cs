@@ -1,0 +1,53 @@
+﻿using System;
+
+using AggregateSource.EventStore.NetCore;
+using AggregateSource.EventStore.NetCore.Resolvers;
+
+using EventStore.ClientAPI.SystemData;
+
+using NUnit.Framework;
+
+namespace AggregateSource.EventStore.Resolvers
+{
+    [TestFixture]
+    public class FixedStreamUserCredentialsResolverTests
+    {
+        [SetUp]
+        public void SetUp()
+        {
+            _credentials = new UserCredentials("admin", "changeit");
+            _sut = new FixedStreamUserCredentialsResolver(_credentials);
+        }
+
+        private FixedStreamUserCredentialsResolver _sut;
+        private UserCredentials _credentials;
+
+        [Test]
+        public void FixedUserCredentialsCanNotBeNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => new FixedStreamUserCredentialsResolver(null));
+        }
+
+        [Test]
+        public void IsStreamUserCredentialsResolver()
+        {
+            Assert.That(_sut, Is.InstanceOf<IStreamUserCredentialsResolver>());
+        }
+
+        [Test]
+        public void ResolveIdentifierCanNotBeNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => _sut.Resolve(null));
+        }
+
+        [Test]
+        public void ResolveReturnsExpectedResult()
+        {
+            var identifier = Guid.NewGuid().ToString();
+
+            var result = _sut.Resolve(identifier);
+
+            Assert.That(result, Is.SameAs(_credentials));
+        }
+    }
+}

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>44709b35-26e8-4588-a87a-1727cdb11255</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Value.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DictionaryByValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EquatableByValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EquatableByValueWithoutOrder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ListByValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SetByValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValueType.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="RunAll" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--(c) 2017 T.Pierrain, Cyrille Dupuydauby -->
+  <PropertyGroup>
+    <SolutionRoot>$(MSBuildProjectDirectory)\..</SolutionRoot>
+  </PropertyGroup>
+
+  <Import Project="build.tasks" />
+  
+  <PropertyGroup>
+      <Configuration Condition="$(Configuration) == ''">Debug</Configuration>
+      <SolutionRoot>$(MSBuildProjectDirectory)\..</SolutionRoot>
+      <SolutionName>Value</SolutionName>
+      <AssemblyFileNameRoot>$(SolutionRoot)\$(SolutionName)</AssemblyFileNameRoot>
+      <ToolsPath>$(SolutionRoot)\tools\</ToolsPath>
+      <SourcePath>$(SolutionRoot)\</SourcePath>
+      <ArtifactsPath>$(SolutionRoot)\Artifacts</ArtifactsPath>
+      <BinariesPath>$(ArtifactsPath)\Binaries</BinariesPath>
+      <PackagesPath>$(ArtifactsPath)\Packages</PackagesPath>
+      <DocPath>$(ArtifactsPath)\Docs</DocPath>
+      <NuGetToolsPath></NuGetToolsPath>
+      <NuGetExePath>$(NuGetToolsPath)nuget.exe</NuGetExePath>
+      <TestRunnerPath>$(SolutionRoot)\packages\NUnit.ConsoleRunner.3.6.1\tools\nunit3-console.exe</TestRunnerPath>
+      <!--<NugetKey>$(VALUE_NUGET_API_KEY)</NugetKey>-->
+      <PackageStream>alpha</PackageStream>
+  </PropertyGroup>
+    
+  <Target Name="SetNightly">
+     <PropertyGroup>
+      <PackageStream>nightly</PackageStream>
+    </PropertyGroup>
+  </Target>
+  <Target Name="SetRC">
+     <PropertyGroup>
+      <PackageStream>RC</PackageStream>
+    </PropertyGroup>
+  </Target>
+  <Target Name="SetRelease">
+     <PropertyGroup>
+      <PackageStream></PackageStream>
+    </PropertyGroup>
+  </Target>
+  
+  <Target Name="RunAll" DependsOnTargets="Build; RunTests; Package" />
+  <Target Name="Nightly" DependsOnTargets="SetNightly; RunAll; Publish"/>
+  <Target Name="RC" DependsOnTargets="SetRC; RunAll; Publish"/>
+  <Target Name="Release" DependsOnTargets="SetRelease; RunAll; Publish"/>
+  <Target Name="CI" DependsOnTargets="Build" />
+
+  <!-- 1- Do the BUILD -->
+
+  <Target Name="DotnetCoreRestore">
+    <Message Importance="high" Text="--------- DOTNET RESTORE  -------------------------------------------"/>     
+    <Exec Command="dotnet restore $(SolutionRoot)\Value.Standard" />
+
+    <Message Importance="high" Text="--------- end of DOTNET RESTORE  -------------------------------------"/>
+  </Target>
+  
+  <ItemGroup>
+    <ProjectFolder Include="$(SolutionRoot)\Value.Net40"/>  
+    <ProjectFolder Include="$(SolutionRoot)\Value.Net45"/>  
+    <ProjectFolder Include="$(SolutionRoot)\Value.Standard"/>  
+    <ProjectFolder Include="$(SolutionRoot)\Value.Tests"/>  
+  </ItemGroup>
+    
+  <Target Name="NugetRestore" DependsOnTargets="DotnetCoreRestore">
+    <Message Importance="high" Text="--------- NUGET RESTORE  -------------------------------------------"/>
+    
+    <Exec Command='"$(NuGetExePath)"  install "%(ProjectFolder.Identity)\packages.config" -o "$(SolutionRoot)\packages"'/>
+  
+    <Message Importance="high" Text="--------- end of NUGET RESTORE  -------------------------------------"/>
+  </Target>
+  
+  <Target Name="Build" DependsOnTargets="NugetRestore">
+    <Message Importance="high" Text="--------- BUILD  -------------------------------------------"/>
+    
+      <Message Importance="high" Text="
+---------------------------------------------------------------
+BUILD PROJECT with MSBuildToolsVersion: '$(MSBuildToolsVersion)'
+---------------------------------------------------------------
+      "  />
+
+<Message Importance="high" Text="--------- will run: $(SolutionRoot)\$(SolutionName).sln"/>
+
+      <MSBuild Projects="$(SolutionRoot)\$(SolutionName).sln" 
+                Targets="Build" 
+                Properties="Configuration=$(Configuration)" />
+
+    <Message Importance="high" Text="--------- end of BUILD  -------------------------------------"/>
+  </Target>
+    
+  <!-- 2- BUILD THE DOCS -->
+  <Target Name="BuildDocs">
+
+      <Message Importance="high" Text="--------- DOCUMENTATION GENERATION  ---------"/>
+      <Message Importance="high" Text="
+---------------------------------------------------------------
+GENERATING DOCS for:
+  - $(BinariesPath)\$(SolutionName).dll
+---------------------------------------------------------------
+          "  />
+      <MakeDir Directories="$(DocPath)" Condition="!Exists('$(DocPath)')" />
+      <Exec Command="$(DocuExePath) $(BinariesPath)\$(SolutionName).dll --output=$(DocPath)"/>
+      <Exec Command='"$(ZipExe)" a -tzip "$(PackagesPath)\$(SolutionName).docs.zip" "$(DocPath)"' />
+
+      <Message Importance="high" Text="--------- end of DOCUMENTATION GENERATION  ---------"/>
+  </Target>
+
+  <!-- 3- Run the TESTS -->
+  <Target Name="RunTests" DependsOnTargets="Build">
+    <ItemGroup>
+      <TestProjectsWithArguments Include="&quot;$(SolutionRoot)\$(SolutionName).Tests\bin\$(Configuration)\$(SolutionName).Tests.dll&quot; /framework:net-4.0" />
+    </ItemGroup>
+    <Message Importance="high" Text="
+---------------------------------------------------------------
+RUN ALL UNIT TESTS
+---------------------------------------------------------------
+          "  />
+
+    <Message Importance="high" Text="--------- RUN CLASSICAL .NET TESTS ---------"/>
+
+    <Message Importance="normal" Text="Assemblies to test:"/>
+    <Message Importance="normal" Text="'%(TestProjectsWithArguments.Identity)'"/>
+
+    <Exec Command='"$(TestRunnerPath)" %(TestProjectsWithArguments.Identity)' LogStandardErrorAsError="true" WorkingDirectory="../"/>
+
+    <Message Importance="high" Text="--------- end of RUN CLASSICAL .NET TESTS ---------"/>
+
+  </Target>
+
+  <!-- 4- Then PACKAGE -->
+  <Target Name="Package" DependsOnTargets="Build; RunTests">
+    <!--Folders-->
+    <ItemGroup>
+      <FilesForNuget Include="$(AssemblyFileNameRoot).Net40\bin\$(Configuration)\Value.*">
+        <TargetFwk>net40</TargetFwk>
+      </FilesForNuget>
+      <FilesForNuget Include="$(AssemblyFileNameRoot).Net45\bin\$(Configuration)\Value.*">
+        <TargetFwk>net45</TargetFwk>
+      </FilesForNuget>
+      <FilesForNuget Include="$(AssemblyFileNameRoot).Standard\bin\$(Configuration)\netstandard1.3\Value.*">
+        <TargetFwk>netstandard1.3</TargetFwk>
+      </FilesForNuget>
+    </ItemGroup>
+
+    <Message Importance="high" Text="--------- PACKAGE ---------"/>
+      <!-- Copies the dll into an easy path targeted by the .nuspec file. -->
+      <!-- Value -->
+      <Message Importance="high" Text="xcopy %(FilesForNuget.Identity) $(BinariesPath)\%(FilesForNuget.TargetFwk)\ /E /Y" />
+      <Exec Command='xcopy "%(FilesForNuget.FullPath)" "$(BinariesPath)\%(FilesForNuget.TargetFwk)\" /E /Y' />
+	  
+      <!-- Get the version number of the main FV assembly (that has been patched by appveyor CI) to insert into the nuspec files -->
+      <GetAssemblyIdentity AssemblyFiles="$(BinariesPath)\net45\$(SolutionName).dll">
+        <Output TaskParameter="Assemblies" ItemName="AsmInfo" />
+      </GetAssemblyIdentity>
+
+      <PropertyGroup>
+        <NuspecFilePath>$(SolutionRoot)\$(SolutionName).nuspec</NuspecFilePath>
+        <PackageVersion>%(AsmInfo.Version)</PackageVersion>
+      </PropertyGroup>
+
+      <Message Importance="high" Text="[Print] PackageVersion: '$(PackageVersion)'" />
+      <Message Importance="high" Text="[Print] NuspecFilePath: '$(NuspecFilePath)'" />
+      <Message Importance="high" Text="[Print] PackageStream: '$(PackageStream)'" />
+
+    <VersionBuilding version ="$(PackageVersion)" stream="$(PackageStream)">
+      <Output PropertyName="PrettyVersion" TaskParameter="fullVersion" />
+    </VersionBuilding>
+    
+    <Message Importance="high" Text="`Pretty Version= $(PrettyVersion)" />
+      
+    <!-- insert the version number into the nuspec file -->
+      <XmlPoke 
+        XmlInputPath="$(NuspecFilePath)"
+          Namespaces="&lt;Namespace Prefix='x' Uri='http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd' /&gt;"
+        Query="x:package/x:metadata/x:version" 
+        Value="$(PrettyVersion)" />
+
+      <!-- Gets the release note content from the proper file -->
+      <ReadLinesFromFile File="$(SolutionRoot)\ReleaseNoteContentToBeInsertedWithinNuspecFile.txt">
+        <Output TaskParameter="Lines" ItemName="FileContents" />
+      </ReadLinesFromFile>
+      
+      <!-- Sets its content into a variable with n/a as the default value -->
+      <PropertyGroup>
+        <ReleaseNoteContent>n/a</ReleaseNoteContent>
+      </PropertyGroup>
+
+      <PropertyGroup Condition=" '@(FileContents,'%0a%0d')' != '' ">
+        <ReleaseNoteContent>@(FileContents,'%0a%0d')</ReleaseNoteContent>
+      </PropertyGroup>
+
+      <!-- Updates the nuspec file with this variable content -->
+      <XmlPoke
+        XmlInputPath="$(NuspecFilePath)"
+          Namespaces="&lt;Namespace Prefix='x' Uri='http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd' /&gt;"
+        Query="x:package/x:metadata/x:releaseNotes"
+        Value="$(ReleaseNoteContent)" />
+
+      <Message Importance="high" Text="
+---------------------------------------------------------------
+CREATING NUGET PACKAGE IN:
+    - $(PackagesPath)
+---------------------------------------------------------------
+            " />
+      <MakeDir Directories="$(PackagesPath)" Condition="!Exists('$(PackagesPath)')" />
+      <Exec Command='"$(NuGetExePath)" pack "$(NuspecFilePath)" -o "$(PackagesPath)"' LogStandardErrorAsError="true" />
+      <PropertyGroup>
+        <PackageFileName>$(PackagesPath)\$(SolutionName).$(PrettyVersion).nupkg</PackageFileName>
+    </PropertyGroup>
+        <Message Importance="high" Text="--------- End of PACKAGE ---------"/>
+  </Target>
+
+  <!-- 5- Then Publish -->
+  <Target Name="Publish" DependsOnTargets="Package">
+  <!--= Publish the package on Nuget-->
+  <Message Importance="high" Text="--------- NUGET PUBLISH  -------------------------------------------"/>
+
+    <Message Importance="high" Text="Do nothing ;-)"/>
+  <!--<Exec Command="&quot;$(NuGetExePath) restore&quot;" />-->
+  <!--<Exec Command='"$(NuGetExePath)" setApiKey $(NugetKey) -source https://www.nuget.org/api/v2/package'/>
+  <Exec Command='"$(NuGetExePath)"  push "$(PackageFileName)" -Source https://www.nuget.org/api/v2/package' />-->
+  
+  <Message Importance="high" Text="--------- end of NUGET PUBLISH  -------------------------------------"/></Target> 
+</Project>
+ 

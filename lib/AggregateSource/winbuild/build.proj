@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <RootPath>$(MSBuildProjectDirectory)\..</RootPath>
+    <SourcePath>$(RootPath)\src</SourcePath>
+    <PackagesPath>$(MSBuildProjectDirectory)\packages</PackagesPath>
+    <MSBuildCommunityTasksPath>$(PackagesPath)\MSBuildTasks.1.5.0.214\tools</MSBuildCommunityTasksPath>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"/>
+
+  <Target Name="NonInteractiveBuild">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\run_me_first.proj" />
+    <CallTarget Targets="Build" />
+  </Target>
+
+  <Target Name="Build">
+    <RemoveDir 
+      Condition="Exists('$(MSBuildProjectDirectory)\output')"
+      Directories="$(MSBuildProjectDirectory)\output" />
+    <MSBuild Projects="$(MSBuildProjectDirectory)\version.proj" />
+    <MSBuild Projects="$(MSBuildProjectDirectory)\info.proj" />
+    <MSBuild 
+      Projects="
+        $(SourcePath)\Core\AggregateSource\AggregateSource.csproj;
+        $(SourcePath)\Core\AggregateSource.Content.ExplicitRouting\AggregateSource.Content.ExplicitRouting.csproj;
+        $(SourcePath)\Core\AggregateSource.Content.ExplicitStateExplicitRouting\AggregateSource.Content.ExplicitStateExplicitRouting.csproj;
+        $(SourcePath)\Testing\AggregateSource.Testing\AggregateSource.Testing.csproj;
+        $(SourcePath)\Testing\AggregateSource.Testing.Tests\AggregateSource.Testing.Tests.csproj;
+        $(SourcePath)\Testing\AggregateSource.Testing.NUnit\AggregateSource.Testing.NUnit.csproj;
+        $(SourcePath)\Testing\AggregateSource.Testing.Xunit\AggregateSource.Testing.Xunit.csproj;
+        $(SourcePath)\Core\AggregateSource.Tests\AggregateSource.Tests.csproj; 
+        $(SourcePath)\SampleSource\SampleSource.csproj;
+        $(SourcePath)\EventStore\AggregateSource.EventStore\AggregateSource.EventStore.csproj;
+        $(SourcePath)\EventStore\AggregateSource.EventStore.Tests\AggregateSource.EventStore.Tests.csproj;
+        $(SourcePath)\EventStore\AggregateSource.EventStore.IntegratedTests\AggregateSource.EventStore.IntegratedTests.csproj;
+        $(SourcePath)\NEventStore\AggregateSource.NEventStore\AggregateSource.NEventStore.csproj;
+        $(SourcePath)\NEventStore\AggregateSource.NEventStore.Tests\AggregateSource.NEventStore.Tests.csproj;"
+      BuildInParallel="true" 
+      Properties="Configuration=Release;OutputPath=$(MSBuildProjectDirectory)\output\net45"
+      UnloadProjectsOnCompletion="true"/>
+  </Target>
+</Project>

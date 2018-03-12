@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Value</id>
+    <title>Value</title>
+    <version>1.0.0.00</version>
+    <authors>Thomas PIERRAIN</authors>
+    <owners>Thomas PIERRAIN</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <projectUrl>https://github.com/tpierrain/Value/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <iconUrl>https://raw.githubusercontent.com/tpierrain/Value/master/Value-icon.jpg</iconUrl>
+    <description>Value is a pico library (or code snippets shed) to help you to easily implement Value Types (also known as Value Objects in DDD) in your C# projects without making implementation errors nor polluting your domain logic with boiler-plate code.</description>
+    <summary>Less Entities, more Value Types with easy-to-use and lightweight helpers.</summary>
+    <releaseNotes>New feature(s):
+
+* Support for .Net Standard (ex .Net Core)
+
+* Provide the following helpers: ValueType&lt;T&gt;, ListByValue&lt;T&gt;, SetByValue&lt;T&gt;
+
+--------------
+
+Change(s):
+
+*
+
+--------------
+
+Bug Fixe(s):
+
+*</releaseNotes>
+    <copyright>Copyright 2016-2017 Thomas PIERRAIN</copyright>
+    <language>en-US</language>
+    <tags>DDD domain value object type tactical pattern pico library</tags>
+  </metadata>
+  <files>
+    <!-- .NET 4.0 -->
+    <file src="Artifacts\Binaries\net40\Value.dll" target="lib\net40\Value.dll" />
+    <!-- .NET 4.5 -->
+    <file src="Artifacts\Binaries\net45\Value.dll" target="lib\net45\Value.dll" />
+    <!-- .Net standard 1_3 -->
+    <file src="Artifacts\Binaries\netstandard1.3\Value.dll" target="lib\netstandard1.3\Value.dll" />
+  </files>
+</package>
