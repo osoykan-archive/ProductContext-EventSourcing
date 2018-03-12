@@ -71,8 +71,6 @@ namespace ProductContext.WebApi
                     concurrentUnitOfWork,
                     esConnection,
                     new EventReaderConfiguration(new SliceSize(10), defaultSerializer, new PassThroughStreamNameResolver(), new FixedStreamUserCredentialsResolver(new UserCredentials("admin", "changeit"))));
-                )
-                ;
 
                 Func<DateTime> getDatetime = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
                 var productCommandHandlers = new ProductCommandHandlers(productRepository, getDatetime);
@@ -101,32 +99,39 @@ namespace ProductContext.WebApi
 
         private async Task InitProjections()
         {
-            IEventStoreConnection esConnection = Defaults.GetConnection().GetAwaiter().GetResult();
+            IEventStoreConnection esConnection = await Defaults.GetConnection();
 
             string projectionsConnectionString = Configuration["Data:Projections:ConnectionString"];
-            string eventStoreConnectionString = Configuration["Data:EventStore:ConnectionString"];
-
-            LoggingHelper.Capture(Console.Out);
+            var connection = new SqlConnection(projectionsConnectionString);
 
             var handlers = new List<ConnectedProjectionHandler<SqlConnection>>();
             handlers.AddRange(new ProductProjector());
 
-            var projector = new ConnectedProjector<IEventStoreConnection>(
+            var projector = new ConnectedProjector<SqlConnection>(
                 Resolve.WhenEqualToHandlerMessageType(handlers.ToArray())
                 );
 
+            await SetupProjectionsDb(projector, connection).ConfigureAwait(false);
             var deserializer = new DefaultEventDeserializer();
 
             esConnection.SubscribeToAllFrom(Position.Start, new CatchUpSubscriptionSettings(100, 100, true, true), (subscription, resolvedEvent) =>
             {
-                IEnumerable<object> @events = deserializer.Deserialize(resolvedEvent);
+                IEnumerable<object> events = deserializer.Deserialize(resolvedEvent);
 
-                foreach (object @event in @events)
-                {  projector.ProjectAsync(@event)
-
+                foreach (object @event in events)
+                {
+                    projector.ProjectAsync(connection, @event);
                 }
-              
             });
+        }
+
+        private static async Task SetupProjectionsDb(ConnectedProjector<SqlConnection> projector, SqlConnection connection)
+        {
+            await projector.ProjectAsync(connection, new object[]
+            {
+                new DropProductSchema(),
+                new CreateProductSchema()
+            }).ConfigureAwait(false);
         }
     }
 }
