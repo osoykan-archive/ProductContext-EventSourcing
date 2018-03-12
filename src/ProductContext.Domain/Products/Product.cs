@@ -2,10 +2,7 @@
 
 using AggregateSource;
 
-using ProductContext.Domain.Events;
-using ProductContext.Domain.Values;
-
-namespace ProductContext.Domain.Aggregates
+namespace ProductContext.Domain.Products
 {
     public partial class Product : AggregateRootEntity
     {
@@ -13,7 +10,7 @@ namespace ProductContext.Domain.Aggregates
 
         private Product()
         {
-            Register<ProductCreated>(When);
+            Register<Events.V1.ProductCreated>(When);
         }
 
         public ProductId ProductId { get; private set; }
@@ -24,10 +21,16 @@ namespace ProductContext.Domain.Aggregates
         {
             var aggregate = Factory();
             aggregate.ApplyChange(
-                new ProductCreated(id, code, brandId, genderId, ageGroupId, businessUnitId)
+                new Events.V1.ProductCreated(id, code, brandId, genderId, ageGroupId, businessUnitId)
                 );
 
             return aggregate;
+        }
+
+        private void When(Events.V1.ProductCreated @event)
+        {
+            ProductId = new ProductId(@event.ProductId);
+            Detail = new ProductDetail(@event.GenderId, @event.AgeGroupId, @event.BusinessUnitId);
         }
     }
 }

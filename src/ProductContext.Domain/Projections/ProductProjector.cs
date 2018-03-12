@@ -4,7 +4,7 @@ using Dapper;
 
 using DapperExtensions;
 
-using ProductContext.Domain.Events;
+using ProductContext.Domain.Products;
 
 using Projac.Connector;
 using Projac.Connector.NetCore;
@@ -32,7 +32,7 @@ namespace ProductContext.Domain.Projections
         public ProductProjector()
         {
 
-            When<ProductCreated>((connection, @event) =>
+            When<Events.V1.ProductCreated>((connection, @event) =>
             {
                 connection.Insert(new ProductProjection()
                 {

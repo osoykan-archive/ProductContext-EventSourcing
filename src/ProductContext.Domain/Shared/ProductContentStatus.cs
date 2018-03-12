@@ -1,4 +1,4 @@
-﻿namespace ProductContext.Domain.Enums
+﻿namespace ProductContext.Domain.Shared
 {
     public enum ProductContentStatus
     {

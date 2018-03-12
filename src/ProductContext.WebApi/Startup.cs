@@ -19,8 +19,7 @@ using NodaTime;
 
 using ProductContext.Common;
 using ProductContext.Common.Bus;
-using ProductContext.Domain.Aggregates;
-using ProductContext.Domain.CommandHandlers;
+using ProductContext.Domain.Products;
 using ProductContext.Domain.Projections;
 
 using Projac.Connector.NetCore;
@@ -66,18 +65,10 @@ namespace ProductContext.WebApi
                     esConnection,
                     new EventReaderConfiguration(new SliceSize(10), defaultSerializer, new PassThroughStreamNameResolver(), new FixedStreamUserCredentialsResolver(new UserCredentials("admin", "changeit"))));
 
-                var productContentRepository = new AsyncRepository<ProductContent>(
-                    ProductContent.Factory,
-                    concurrentUnitOfWork,
-                    esConnection,
-                    new EventReaderConfiguration(new SliceSize(10), defaultSerializer, new PassThroughStreamNameResolver(), new FixedStreamUserCredentialsResolver(new UserCredentials("admin", "changeit"))));
-
                 Func<DateTime> getDatetime = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
                 var productCommandHandlers = new ProductCommandHandlers(productRepository, getDatetime);
-                var productContentCommandHandlers = new ProductContentCommandHandlers(productContentRepository, getDatetime);
 
                 bus.Subscribe(productCommandHandlers);
-                bus.Subscribe(productContentCommandHandlers);
 
                 return bus;
             });
@@ -113,11 +104,9 @@ namespace ProductContext.WebApi
 
             await SetupProjectionsDb(projector, connection).ConfigureAwait(false);
 
-            Func<object, Task> projectFunc = @event =>
+            Func<object, Task> projectFunc = async @event =>
             {
-                projector.ProjectAsync(connection, @event);
-
-                return Task.CompletedTask;
+                await projector.ProjectAsync(connection, @event);
             };
 
             var deserializer = new DefaultEventDeserializer();
@@ -131,8 +120,11 @@ namespace ProductContext.WebApi
         }
 
         private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
-            (subscription, reason, ex) =>
+            async (subscription, reason, ex) =>
             {
+                subscription.Stop();
+
+                await InitProjections();
             };
 
         private Action<EventStoreCatchUpSubscription> LiveProcessingStarted(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
@@ -143,15 +135,13 @@ namespace ProductContext.WebApi
         private Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> EventAppeared(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
             async (subscription, e) =>
             {
-                // always double check if it is a system event ;)
-                if (e.OriginalEvent.EventType.StartsWith("$")) return;
-
-                IEnumerable<object> @events = deserializer.Deserialize(e);
-
-                foreach (object @event in @events)
+                // pass system events ;)
+                if (e.OriginalEvent.EventType.StartsWith("$"))
                 {
-                    await projector(@event);
+                    return;
                 }
+
+                await projector(deserializer.Deserialize(e));
             };
 
         private static async Task SetupProjectionsDb(ConnectedProjector<SqlConnection> projector, SqlConnection connection)

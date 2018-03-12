@@ -2,7 +2,7 @@
 
 using Value;
 
-namespace ProductContext.Domain.Values
+namespace ProductContext.Domain.Products
 {
     public class ProductDetail : ValueType<ProductDetail>
     {

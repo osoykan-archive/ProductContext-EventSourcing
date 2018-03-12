@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using EventStore.ClientAPI;
+﻿using EventStore.ClientAPI;
 
 namespace AggregateSource.EventStore
 {
@@ -14,6 +12,6 @@ namespace AggregateSource.EventStore
         /// </summary>
         /// <param name="resolvedEvent">The resolved event to deserialize.</param>
         /// <returns>An enumeration of deserialized events.</returns>
-        IEnumerable<object> Deserialize(ResolvedEvent resolvedEvent);
+        object Deserialize(ResolvedEvent resolvedEvent);
     }
 }

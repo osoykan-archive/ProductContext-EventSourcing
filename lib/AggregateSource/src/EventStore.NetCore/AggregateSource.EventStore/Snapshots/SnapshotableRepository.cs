@@ -97,7 +97,7 @@ namespace AggregateSource.EventStore.Snapshots
             }
             var streamUserCredentials = _configuration.StreamUserCredentialsResolver.Resolve(identifier);
             var streamName = _configuration.StreamNameResolver.Resolve(identifier);
-            var slice = _connection.
+            StreamEventsSlice slice = _connection.
                 ReadStreamEventsForwardAsync(
                     streamName, version, _configuration.SliceSize, false, streamUserCredentials).
                 Result;
@@ -105,19 +105,22 @@ namespace AggregateSource.EventStore.Snapshots
             {
                 return Optional<TAggregateRoot>.Empty;
             }
-            var root = _rootFactory();
+
+            TAggregateRoot root = _rootFactory();
             if (snapshot.HasValue)
             {
                 root.RestoreSnapshot(snapshot.Value.State);
             }
-            root.Initialize(slice.Events.SelectMany(resolved => _configuration.Deserializer.Deserialize(resolved)));
+
+            root.Initialize(slice.Events.Select(resolved => _configuration.Deserializer.Deserialize(resolved)));
             while (!slice.IsEndOfStream)
             {
                 slice = _connection.
                     ReadStreamEventsForwardAsync(
                         streamName, slice.NextEventNumber, _configuration.SliceSize, false, streamUserCredentials).
                     Result;
-                root.Initialize(slice.Events.SelectMany(resolved => _configuration.Deserializer.Deserialize(resolved)));
+
+                root.Initialize(slice.Events.Select(resolved => _configuration.Deserializer.Deserialize(resolved)));
             }
             aggregate = new Aggregate(identifier, (int)slice.LastEventNumber, root);
             _unitOfWork.Attach(aggregate);

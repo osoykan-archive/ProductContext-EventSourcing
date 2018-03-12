@@ -10,10 +10,10 @@ namespace ProductContext.WebApi
     {
         public static async Task<IEventStoreConnection> GetConnection()
         {
-            var settings = ConnectionSettings.Create()
+            ConnectionSettings settings = ConnectionSettings.Create()
                                              .SetDefaultUserCredentials(new UserCredentials("admin", "changeit")).Build();
 
-            var connection = EventStoreConnection.Create(settings, new IPEndPoint(IPAddress.Loopback, 1113));
+            IEventStoreConnection connection = EventStoreConnection.Create(settings, new IPEndPoint(IPAddress.Loopback, 1113));
             await connection.ConnectAsync();
             return connection;
         }

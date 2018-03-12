@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 using AggregateSource.EventStore;
@@ -7,17 +6,24 @@ using AggregateSource.EventStore;
 using EventStore.ClientAPI;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace ProductContext.Common
 {
     public class DefaultEventDeserializer : IEventDeserializer
     {
-        public IEnumerable<object> Deserialize(ResolvedEvent resolvedEvent) => new List<object>
+        public static readonly JsonSerializerSettings DefaultSettings = new JsonSerializerSettings
         {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            TypeNameHandling = TypeNameHandling.None,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        public object Deserialize(ResolvedEvent resolvedEvent) =>
             JsonConvert.DeserializeObject(
                 Encoding.UTF8.GetString(resolvedEvent.Event.Data),
-                Type.GetType(resolvedEvent.Event.EventType, true)
-                )
-        };
+                Type.GetType(resolvedEvent.Event.EventType, true),
+                DefaultSettings
+            );
     }
 }

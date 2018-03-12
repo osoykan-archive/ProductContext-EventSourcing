@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.SystemData;
 
 namespace AggregateSource.EventStore
 {
@@ -29,26 +30,10 @@ namespace AggregateSource.EventStore
         public AsyncRepository(Func<TAggregateRoot> rootFactory, ConcurrentUnitOfWork unitOfWork,
             IEventStoreConnection connection, EventReaderConfiguration configuration)
         {
-            if (rootFactory == null)
-            {
-                throw new ArgumentNullException("rootFactory");
-            }
-            if (unitOfWork == null)
-            {
-                throw new ArgumentNullException("unitOfWork");
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException("connection");
-            }
-            if (configuration == null)
-            {
-                throw new ArgumentNullException("configuration");
-            }
-            RootFactory = rootFactory;
-            UnitOfWork = unitOfWork;
-            Connection = connection;
-            Configuration = configuration;
+            RootFactory = rootFactory ?? throw new ArgumentNullException(nameof(rootFactory));
+            UnitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            Connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -96,6 +81,7 @@ namespace AggregateSource.EventStore
             {
                 throw new AggregateNotFoundException(identifier, typeof(TAggregateRoot));
             }
+
             return result.Value;
         }
 
@@ -111,8 +97,9 @@ namespace AggregateSource.EventStore
             {
                 return new Optional<TAggregateRoot>((TAggregateRoot)aggregate.Root);
             }
-            var streamUserCredentials = Configuration.StreamUserCredentialsResolver.Resolve(identifier);
-            var streamName = Configuration.StreamNameResolver.Resolve(identifier);
+
+            UserCredentials streamUserCredentials = Configuration.StreamUserCredentialsResolver.Resolve(identifier);
+            string streamName = Configuration.StreamNameResolver.Resolve(identifier);
             StreamEventsSlice slice =
                 await
                     Connection.ReadStreamEventsForwardAsync(streamName, StreamPosition.Start, Configuration.SliceSize,
@@ -121,16 +108,18 @@ namespace AggregateSource.EventStore
             {
                 return Optional<TAggregateRoot>.Empty;
             }
-            var root = RootFactory();
-            root.Initialize(slice.Events.SelectMany(resolved => Configuration.Deserializer.Deserialize(resolved)));
+
+            TAggregateRoot root = RootFactory();
+            root.Initialize(slice.Events.Select(resolved => Configuration.Deserializer.Deserialize(resolved)));
             while (!slice.IsEndOfStream)
             {
                 slice =
                     await
                         Connection.ReadStreamEventsForwardAsync(streamName, slice.NextEventNumber, Configuration.SliceSize,
                             false, streamUserCredentials);
-                root.Initialize(slice.Events.SelectMany(resolved => Configuration.Deserializer.Deserialize(resolved)));
+                root.Initialize(slice.Events.Select(resolved => Configuration.Deserializer.Deserialize(resolved)));
             }
+
             aggregate = new Aggregate(identifier, (int)slice.LastEventNumber, root);
             UnitOfWork.Attach(aggregate);
             return new Optional<TAggregateRoot>(root);

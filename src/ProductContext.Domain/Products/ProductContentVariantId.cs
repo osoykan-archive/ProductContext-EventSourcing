@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Value;
 
-namespace ProductContext.Domain.Aggregates
+namespace ProductContext.Domain.Products
 {
     public class ProductContentVariantId : ValueType<ProductContentVariantId>
     {
@@ -19,9 +19,10 @@ namespace ProductContext.Domain.Aggregates
             Id = id;
         }
 
-        protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality()
-        {
-            return new List<object> { Id };
-        }
+        protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality() => new List<object> { Id };
+
+        public static implicit operator string(ProductContentVariantId self) => self.Id;
+
+        public static implicit operator ProductContentVariantId(string value) => new ProductContentVariantId(value);
     }
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.SystemData;
 
 namespace AggregateSource.EventStore
 {
@@ -107,9 +108,9 @@ namespace AggregateSource.EventStore
             {
                 return new Optional<TAggregateRoot>((TAggregateRoot)aggregate.Root);
             }
-            var streamUserCredentials = Configuration.StreamUserCredentialsResolver.Resolve(identifier);
-            var streamName = Configuration.StreamNameResolver.Resolve(identifier);
-            var slice = Connection.
+            UserCredentials streamUserCredentials = Configuration.StreamUserCredentialsResolver.Resolve(identifier);
+            string streamName = Configuration.StreamNameResolver.Resolve(identifier);
+            StreamEventsSlice slice = Connection.
                 ReadStreamEventsForwardAsync(
                     streamName, StreamPosition.Start, Configuration.SliceSize, false, streamUserCredentials).
                 Result;
@@ -117,15 +118,15 @@ namespace AggregateSource.EventStore
             {
                 return Optional<TAggregateRoot>.Empty;
             }
-            var root = RootFactory();
-            root.Initialize(slice.Events.SelectMany(resolved => Configuration.Deserializer.Deserialize(resolved)));
+            TAggregateRoot root = RootFactory();
+            root.Initialize(slice.Events.Select(resolved => Configuration.Deserializer.Deserialize(resolved)));
             while (!slice.IsEndOfStream)
             {
                 slice = Connection.
                     ReadStreamEventsForwardAsync(
                         streamName, slice.NextEventNumber, Configuration.SliceSize, false, streamUserCredentials).
                     Result;
-                root.Initialize(slice.Events.SelectMany(resolved => Configuration.Deserializer.Deserialize(resolved)));
+                root.Initialize(slice.Events.Select(resolved => Configuration.Deserializer.Deserialize(resolved)));
             }
             aggregate = new Aggregate(identifier, (int)slice.LastEventNumber, root);
             UnitOfWork.Attach(aggregate);

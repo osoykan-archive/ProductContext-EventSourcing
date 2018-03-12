@@ -1,6 +1,4 @@
-﻿#if !NET40
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -38,31 +36,11 @@ namespace AggregateSource.EventStore.Snapshots
             IEventStoreConnection connection, EventReaderConfiguration configuration,
             IAsyncSnapshotReader reader)
         {
-            if (rootFactory == null)
-            {
-                throw new ArgumentNullException("rootFactory");
-            }
-            if (unitOfWork == null)
-            {
-                throw new ArgumentNullException("unitOfWork");
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException("connection");
-            }
-            if (configuration == null)
-            {
-                throw new ArgumentNullException("configuration");
-            }
-            if (reader == null)
-            {
-                throw new ArgumentNullException("reader");
-            }
-            _rootFactory = rootFactory;
-            _unitOfWork = unitOfWork;
-            _connection = connection;
-            _configuration = configuration;
-            _reader = reader;
+            _rootFactory = rootFactory ?? throw new ArgumentNullException(nameof(rootFactory));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _reader = reader ?? throw new ArgumentNullException(nameof(reader));
         }
 
         /// <summary>
@@ -78,6 +56,7 @@ namespace AggregateSource.EventStore.Snapshots
             {
                 throw new AggregateNotFoundException(identifier, typeof(TAggregateRoot));
             }
+
             return result.Value;
         }
 
@@ -93,12 +72,14 @@ namespace AggregateSource.EventStore.Snapshots
             {
                 return new Optional<TAggregateRoot>((TAggregateRoot)aggregate.Root);
             }
+
             var snapshot = await _reader.ReadOptionalAsync(identifier);
             var version = 1;
             if (snapshot.HasValue)
             {
                 version = snapshot.Value.Version + 1;
             }
+
             var streamUserCredentials = _configuration.StreamUserCredentialsResolver.Resolve(identifier);
             var streamName = _configuration.StreamNameResolver.Resolve(identifier);
             var slice =
@@ -109,20 +90,23 @@ namespace AggregateSource.EventStore.Snapshots
             {
                 return Optional<TAggregateRoot>.Empty;
             }
+
             var root = _rootFactory();
             if (snapshot.HasValue)
             {
                 root.RestoreSnapshot(snapshot.Value.State);
             }
-            root.Initialize(slice.Events.SelectMany(resolved => _configuration.Deserializer.Deserialize(resolved)));
+
+            root.Initialize(slice.Events.Select(resolved => _configuration.Deserializer.Deserialize(resolved)));
             while (!slice.IsEndOfStream)
             {
                 slice =
                     await
                         _connection.ReadStreamEventsForwardAsync(streamName, slice.NextEventNumber, _configuration.SliceSize,
                             false, streamUserCredentials);
-                root.Initialize(slice.Events.SelectMany(resolved => _configuration.Deserializer.Deserialize(resolved)));
+                root.Initialize(slice.Events.Select(resolved => _configuration.Deserializer.Deserialize(resolved)));
             }
+
             aggregate = new Aggregate(identifier, (int)slice.LastEventNumber, root);
             _unitOfWork.Attach(aggregate);
             return new Optional<TAggregateRoot>(root);
@@ -139,5 +123,3 @@ namespace AggregateSource.EventStore.Snapshots
         }
     }
 }
-
-#endif

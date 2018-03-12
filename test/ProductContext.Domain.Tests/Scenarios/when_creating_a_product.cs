@@ -2,8 +2,7 @@
 
 using AggregateSource.Testing;
 
-using ProductContext.Domain.Aggregates;
-using ProductContext.Domain.Events;
+using ProductContext.Domain.Products;
 
 using Xunit;
 
@@ -15,7 +14,7 @@ namespace ProductContext.Domain.Tests.Scenarios
         public void should_create_a_product()
         {
             string productId = Guid.NewGuid().ToString();
-            var message = new ProductCreated(productId, "PRDCT1234", 1, 1, 1, 6);
+            var message = new Events.V1.ProductCreated(productId, "PRDCT1234", 1, 1, 1, 6);
             new ConstructorScenarioFor<Product>(() =>
                     Product.Create(
                         message.ProductId,
