@@ -34,10 +34,10 @@ namespace ProductContext.WebApi
         public Startup(IHostingEnvironment env)
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", false, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
-                .AddEnvironmentVariables();
+                                            .SetBasePath(env.ContentRootPath)
+                                            .AddJsonFile("appsettings.json", false, true)
+                                            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+                                            .AddEnvironmentVariables();
 
             Configuration = builder.Build();
         }
@@ -109,26 +109,57 @@ namespace ProductContext.WebApi
 
             var projector = new ConnectedProjector<SqlConnection>(
                 Resolve.WhenEqualToHandlerMessageType(handlers.ToArray())
-                );
+            );
 
             await SetupProjectionsDb(projector, connection).ConfigureAwait(false);
+
+            Func<object, Task> projectFunc = @event =>
+            {
+                projector.ProjectAsync(connection, @event);
+
+                return Task.CompletedTask;
+            };
+
             var deserializer = new DefaultEventDeserializer();
 
-            esConnection.SubscribeToAllFrom(Position.Start, new CatchUpSubscriptionSettings(100, 100, true, true), (subscription, resolvedEvent) =>
-            {
-                IEnumerable<object> events = deserializer.Deserialize(resolvedEvent);
-
-                foreach (object @event in events)
-                {
-                    projector.ProjectAsync(connection, @event);
-                }
-            });
+            esConnection.SubscribeToAllFrom(
+                Position.Start,
+                new CatchUpSubscriptionSettings(10000, 500, true, false),
+                EventAppeared(projectFunc, deserializer),
+                LiveProcessingStarted(projectFunc, deserializer),
+                SubscriptionDropped(projectFunc, deserializer));
         }
+
+        private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
+            (subscription, reason, ex) =>
+            {
+            };
+
+        private Action<EventStoreCatchUpSubscription> LiveProcessingStarted(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
+            subscription =>
+            {
+            };
+
+        private Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> EventAppeared(Func<object, Task> projector, DefaultEventDeserializer deserializer) =>
+            async (subscription, e) =>
+            {
+                // always double check if it is a system event ;)
+                if (e.OriginalEvent.EventType.StartsWith("$")) return;
+
+                IEnumerable<object> @events = deserializer.Deserialize(e);
+
+                foreach (object @event in @events)
+                {
+                    await projector(@event);
+                }
+            };
 
         private static async Task SetupProjectionsDb(ConnectedProjector<SqlConnection> projector, SqlConnection connection)
         {
             await projector.ProjectAsync(connection, new object[]
             {
+                new DropCheckpointSchema(),
+                new CreateCheckpointSchema(),
                 new DropProductSchema(),
                 new CreateProductSchema()
             }).ConfigureAwait(false);
