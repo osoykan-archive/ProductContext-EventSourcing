@@ -4,7 +4,7 @@ using AggregateSource;
 
 namespace ProductContext.Domain.Products
 {
-    public partial class Product : AggregateRootEntity
+    public class Product : AggregateRootEntity
     {
         public static readonly Func<Product> Factory = () => new Product();
 
@@ -22,7 +22,7 @@ namespace ProductContext.Domain.Products
             var aggregate = Factory();
             aggregate.ApplyChange(
                 new Events.V1.ProductCreated(id, code, brandId, genderId, ageGroupId, businessUnitId)
-                );
+            );
 
             return aggregate;
         }

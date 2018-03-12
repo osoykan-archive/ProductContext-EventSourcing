@@ -11,8 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\lib\Projac\src\Projac.Connector.NetCore\Projac.Connector.NetCore.csproj" />
-    <ProjectReference Include="..\ProductContext.Common.Bus\ProductContext.Common.Bus.csproj" />
-    <ProjectReference Include="..\ProductContext.Core\ProductContext.Common.csproj" />
+    <ProjectReference Include="..\ProductContext.Core\ProductContext.Framework.csproj" />
   </ItemGroup>
 
 </Project>

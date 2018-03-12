@@ -11,7 +11,7 @@ namespace ProductContext.WebApi
         public static async Task<IEventStoreConnection> GetConnection()
         {
             ConnectionSettings settings = ConnectionSettings.Create()
-                                             .SetDefaultUserCredentials(new UserCredentials("admin", "changeit")).Build();
+                                                            .SetDefaultUserCredentials(new UserCredentials("admin", "changeit")).Build();
 
             IEventStoreConnection connection = EventStoreConnection.Create(settings, new IPEndPoint(IPAddress.Loopback, 1113));
             await connection.ConnectAsync();

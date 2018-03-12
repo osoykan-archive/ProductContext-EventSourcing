@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 
 using ProductContext.Common.Bus.Tests.Helpers;
+using ProductContext.Framework;
 
 using Xunit;
 

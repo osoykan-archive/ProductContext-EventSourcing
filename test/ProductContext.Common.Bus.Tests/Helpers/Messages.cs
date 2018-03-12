@@ -1,5 +1,7 @@
 using System;
 
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
+
 namespace ProductContext.Common.Bus.Tests.Helpers
 {
     public class DeferredExecutionTestMessage : Message

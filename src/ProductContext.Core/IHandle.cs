@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace ProductContext.Common.Bus
+namespace ProductContext.Framework
 {
     public interface IHandle<T> where T : Message
     {

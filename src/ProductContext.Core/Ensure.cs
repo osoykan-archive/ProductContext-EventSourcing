@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ProductContext.Common
+namespace ProductContext.Framework
 {
     public static class Ensure
     {

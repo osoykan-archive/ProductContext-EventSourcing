@@ -13,13 +13,14 @@
 // //     limitations under the License.b 
 // // </copyright>
 // // --------------------------------------------------------------------------------------------------------------------
+
+using System.Collections;
+using System.Collections.Generic;
+
 namespace Value
 {
-    using System.Collections;
-    using System.Collections.Generic;
-
     /// <summary>
-    ///     A list with equality based on its content and not on the list's reference 
+    ///     A list with equality based on its content and not on the list's reference
     ///     (i.e.: 2 different instances containing the same items in the same order will be equals).
     /// </summary>
     /// <remarks>This type is not thread-safe (for hashcode updates).</remarks>
@@ -37,78 +38,63 @@ namespace Value
             this.list = list;
         }
 
-        public int Count => this.list.Count;
+        public int Count => list.Count;
 
-        public bool IsReadOnly => ((ICollection<T>)this.list).IsReadOnly;
+        public bool IsReadOnly => list.IsReadOnly;
 
         public T this[int index]
         {
-            get { return this.list[index]; }
+            get => list[index];
             set
             {
-                this.ResetHashCode();
-                this.list[index] = value;
+                ResetHashCode();
+                list[index] = value;
             }
         }
 
         public void Add(T item)
         {
-            this.ResetHashCode();
-            this.list.Add(item);
+            ResetHashCode();
+            list.Add(item);
         }
 
         public void Clear()
         {
-            this.ResetHashCode();
-            this.list.Clear();
+            ResetHashCode();
+            list.Clear();
         }
 
-        public bool Contains(T item)
-        {
-            return this.list.Contains(item);
-        }
+        public bool Contains(T item) => list.Contains(item);
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            this.list.CopyTo(array, arrayIndex);
+            list.CopyTo(array, arrayIndex);
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return this.list.GetEnumerator();
-        }
+        public IEnumerator<T> GetEnumerator() => list.GetEnumerator();
 
-        public int IndexOf(T item)
-        {
-            return this.list.IndexOf(item);
-        }
+        public int IndexOf(T item) => list.IndexOf(item);
 
         public void Insert(int index, T item)
         {
-            this.ResetHashCode();
-            this.list.Insert(index, item);
+            ResetHashCode();
+            list.Insert(index, item);
         }
 
         public bool Remove(T item)
         {
-            this.ResetHashCode();
-            return this.list.Remove(item);
+            ResetHashCode();
+            return list.Remove(item);
         }
 
         public void RemoveAt(int index)
         {
-            this.ResetHashCode();
-            this.list.RemoveAt(index);
+            ResetHashCode();
+            list.RemoveAt(index);
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable)this.list).GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)list).GetEnumerator();
 
-        protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality()
-        {
-            return (IEnumerable<object>)this.list;
-        }
+        protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality() => (IEnumerable<object>)list;
     }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 
 using ProductContext.Common.Bus.Tests.Helpers;
+using ProductContext.Framework;
 
 using Xunit;
 

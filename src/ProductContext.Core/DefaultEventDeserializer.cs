@@ -8,7 +8,7 @@ using EventStore.ClientAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace ProductContext.Common
+namespace ProductContext.Framework
 {
     public class DefaultEventDeserializer : IEventDeserializer
     {

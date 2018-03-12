@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace ProductContext.Common.Bus
+namespace ProductContext.Framework
 {
     internal interface IMessageHandler
     {
@@ -41,14 +41,8 @@ namespace ProductContext.Common.Bus
             return false;
         }
 
-        public bool IsSame<T2>(object handler)
-        {
-            return ReferenceEquals(_handler, handler) && typeof(T) == typeof(T2);
-        }
+        public bool IsSame<T2>(object handler) => ReferenceEquals(_handler, handler) && typeof(T) == typeof(T2);
 
-        public override string ToString()
-        {
-            return string.IsNullOrEmpty(HandlerName) ? _handler.ToString() : HandlerName;
-        }
+        public override string ToString() => string.IsNullOrEmpty(HandlerName) ? _handler.ToString() : HandlerName;
     }
 }

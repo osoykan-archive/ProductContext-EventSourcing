@@ -17,10 +17,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using NodaTime;
 
-using ProductContext.Common;
-using ProductContext.Common.Bus;
 using ProductContext.Domain.Products;
 using ProductContext.Domain.Projections;
+using ProductContext.Framework;
 
 using Projac.Connector.NetCore;
 

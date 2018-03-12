@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Mvc;
 
-using ProductContext.Common.Bus;
 using ProductContext.Domain.Contracts;
+using ProductContext.Framework;
 
 namespace ProductContext.WebApi.Controllers
 {

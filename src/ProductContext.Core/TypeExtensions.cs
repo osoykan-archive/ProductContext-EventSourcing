@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace ProductContext.Common
+namespace ProductContext.Framework
 {
     public static class TypeExtensions
     {

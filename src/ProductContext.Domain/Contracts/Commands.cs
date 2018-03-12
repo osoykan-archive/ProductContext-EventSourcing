@@ -1,4 +1,4 @@
-﻿using ProductContext.Common.Bus;
+﻿using ProductContext.Framework;
 
 namespace ProductContext.Domain.Contracts
 {

@@ -28,25 +28,22 @@ namespace ProductContext.Domain.Products
             BusinessUnitId = businessUnitId;
         }
 
-        protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality()
+        protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality() => new List<object>
         {
-            return new List<object>
-            {
-                GenderId,
-                BusinessUnitId,
-                AgeGroupId,
-                Composition,
-                Description,
-                Material,
-                Properties,
-                SampleModelSize,
-                SampleSize,
-                StockUnitId,
-                SupplierProductCode,
-                Title,
-                TrendLevelId,
-                Weight
-            };
-        }
+            GenderId,
+            BusinessUnitId,
+            AgeGroupId,
+            Composition,
+            Description,
+            Material,
+            Properties,
+            SampleModelSize,
+            SampleSize,
+            StockUnitId,
+            SupplierProductCode,
+            Title,
+            TrendLevelId,
+            Weight
+        };
     }
 }

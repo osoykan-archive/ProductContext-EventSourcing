@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using ProductContext.Framework;
+
 namespace ProductContext.Common.Bus.Tests.Helpers
 {
     public class TestMultiHandler : IHandle<TestMessage>, IHandle<TestMessage2>, IHandle<TestMessage3>

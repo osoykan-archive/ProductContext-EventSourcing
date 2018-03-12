@@ -10,7 +10,7 @@ using EventStore.ClientAPI;
 
 using Newtonsoft.Json;
 
-namespace ProductContext.Common
+namespace ProductContext.Framework
 {
     public class CommandHandlerBase<T> where T : AggregateRootEntity
     {
@@ -42,7 +42,7 @@ namespace ProductContext.Common
                                  {
                                      timeStamp = _getDateTime()
                                  }))
-                                 )).ToArray()).ConfigureAwait(false);
+                             )).ToArray()).ConfigureAwait(false);
             }
         }
 
@@ -67,7 +67,7 @@ namespace ProductContext.Common
                                  {
                                      timeStamp = _getDateTime()
                                  }))
-                                 )).ToArray()).ConfigureAwait(false);
+                             )).ToArray()).ConfigureAwait(false);
             }
         }
     }

@@ -3,14 +3,12 @@ using System.Threading.Tasks;
 
 using AggregateSource.EventStore;
 
-using ProductContext.Common;
-using ProductContext.Common.Bus;
 using ProductContext.Domain.Contracts;
+using ProductContext.Framework;
 
 namespace ProductContext.Domain.Products
 {
-    public class ProductCommandHandlers : CommandHandlerBase<Product>,
-        IHandle<Commands.V1.CreateProduct>
+    public class ProductCommandHandlers : CommandHandlerBase<Product>, IHandle<Commands.V1.CreateProduct>
 
     {
         public ProductCommandHandlers(AsyncRepository<Product> repository, Func<DateTime> getDateTime)

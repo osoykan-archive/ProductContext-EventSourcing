@@ -13,6 +13,7 @@
 // //     limitations under the License.b 
 // // </copyright>
 // // --------------------------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,15 +21,29 @@ using System.Linq;
 namespace Value
 {
     /// <summary>
-    /// Support a by-Value Equality and Unicity.
+    ///     Support a by-Value Equality and Unicity.
     /// </summary>
-    /// <remarks>This latest implementation has been inspired from Scott Millett's book (Patterns, Principles, and Practices of Domain-Driven Design).</remarks>
+    /// <remarks>
+    ///     This latest implementation has been inspired from Scott Millett's book (Patterns, Principles, and Practices of
+    ///     Domain-Driven Design).
+    /// </remarks>
     /// <typeparam name="T">Type of the elements.</typeparam>
     public abstract class EquatableByValue<T> : IEquatable<T>
     {
         protected const int Undefined = -1;
 
         protected volatile int hashCode = Undefined;
+
+        public bool Equals(T other)
+        {
+            var otherEquatable = other as EquatableByValue<T>;
+            if (otherEquatable == null)
+            {
+                return false;
+            }
+
+            return EqualsImpl(otherEquatable);
+        }
 
         protected void ResetHashCode()
         {
@@ -50,22 +65,8 @@ namespace Value
             return x.Equals(y);
         }
 
-        public static bool operator !=(EquatableByValue<T> x, EquatableByValue<T> y)
-        {
-            return !(x == y);
-        }
+        public static bool operator !=(EquatableByValue<T> x, EquatableByValue<T> y) => !(x == y);
 
-        public bool Equals(T other)
-        {
-            var otherEquatable = other as EquatableByValue<T>;
-            if (otherEquatable == null)
-            {
-                return false;
-            }
-
-            return EqualsImpl(otherEquatable);
-        }
-        
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -90,11 +91,7 @@ namespace Value
 
         protected abstract IEnumerable<object> GetAllAttributesToBeUsedForEquality();
 
-        protected virtual bool EqualsImpl(EquatableByValue<T> otherEquatable)
-        {
-            // Implementation where orders of the elements matters.
-            return GetAllAttributesToBeUsedForEquality().SequenceEqual(otherEquatable.GetAllAttributesToBeUsedForEquality());
-        }
+        protected virtual bool EqualsImpl(EquatableByValue<T> otherEquatable) => GetAllAttributesToBeUsedForEquality().SequenceEqual(otherEquatable.GetAllAttributesToBeUsedForEquality());
 
         public override int GetHashCode()
         {
@@ -113,6 +110,5 @@ namespace Value
 
             return hashCode;
         }
-
     }
 }

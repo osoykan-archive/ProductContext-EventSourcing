@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using ProductContext.Framework;
+
 namespace ProductContext.Common.Bus.Tests.Helpers
 {
     public class TestHandler<T> : IHandle<T> where T : Message

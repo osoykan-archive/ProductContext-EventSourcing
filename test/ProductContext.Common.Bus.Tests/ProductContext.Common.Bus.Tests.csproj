@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ProductContext.Common.Bus\ProductContext.Common.Bus.csproj" />
+    <ProjectReference Include="..\..\src\ProductContext.Core\ProductContext.Framework.csproj" />
   </ItemGroup>
 
 </Project>
