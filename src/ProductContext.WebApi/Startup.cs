@@ -131,6 +131,11 @@ namespace ProductContext.WebApi
                 SubscriptionDropped(projectFunc, deserializer, projectionMapper));
         }
 
+        private static object ComposeEnvelope(object @event, long position)
+        {
+            return Activator.CreateInstance(typeof(Envelope<>).MakeGenericType(@event.GetType()), @event, position);
+        }
+
         private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(
             Func<object, Task> projector,
             DefaultEventDeserializer deserializer,
@@ -175,15 +180,13 @@ namespace ProductContext.WebApi
         private Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> EventAppeared(Func<object, Task> projector, DefaultEventDeserializer deserializer, ProjectionTypeMapper projectionMapper) =>
             async (subscription, e) =>
             {
-                // pass system events ;)
+                // pass system events
                 if (e.OriginalEvent.EventType.StartsWith("$"))
                 {
                     return;
                 }
 
-                await projector(deserializer.Deserialize(e));
-
-                await projector(new EventProjected(projectionMapper.WhoHandlesMe(e.Event.EventType).Name, JsonConvert.SerializeObject(e.OriginalPosition)));
+                await projector(ComposeEnvelope(deserializer.Deserialize(e), e.OriginalPosition.Value.CommitPosition));
             };
 
         private static async Task SetupProjectionsDb(ConnectedProjector<SqlConnection> projector, SqlConnection connection)

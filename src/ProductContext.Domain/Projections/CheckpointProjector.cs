@@ -2,8 +2,6 @@
 
 using Dapper;
 
-using DapperExtensions;
-
 using Projac.Connector.NetCore;
 
 namespace ProductContext.Domain.Projections
@@ -20,41 +18,18 @@ namespace ProductContext.Domain.Projections
     {
         public CheckpointProjector()
         {
-            When<EventProjected>(async (connection, @event) =>
-            {
-                ProjectionCheckpoint pCheckpoint = await connection.QueryFirstOrDefaultAsync<ProjectionCheckpoint>("select * from ProjectionCheckpoint where Projection = @projection",
-                    new { projection = @event.Projection });
-
-                if (pCheckpoint != null)
-                {
-                    pCheckpoint.Position = @event.Position;
-                    connection.Update(pCheckpoint);
-                }
-                else
-                {
-                    connection.Insert(new ProjectionCheckpoint
-                    {
-                        Position = @event.Position,
-                        Projection = @event.Projection
-                    });
-                }
-            });
-
             When<DropCheckpointSchema>((connection, @event) =>
             {
                 connection.Execute(
-                    @"IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='[ProjectionCheckpoint]' AND XTYPE='U')
-                        DROP TABLE [dbo].[ProjectionCheckpoint]");
+                    @"IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='[ProjectionPosition]' AND XTYPE='U')
+                        DROP TABLE [dbo].[ProjectionPosition]");
             });
 
-            When<CreateCheckpointSchema>((connection, @event) =>
-            {
-                connection.Execute(@"IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='ProjectionCheckpoint' AND XTYPE='U')
-                        CREATE TABLE [dbo].[ProjectionCheckpoint](
+            When<CreateCheckpointSchema>((connection, @event) => { connection.Execute(@"IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='ProjectionPosition' AND XTYPE='U')
+                        CREATE TABLE [dbo].[ProjectionPosition](
                             [Projection] NVARCHAR(100) NOT NULL PRIMARY KEY,
-	                        [Position] NVARCHAR(MAX) NOT NULL
-                        ) ON [PRIMARY]");
-            });
+	                        [Position] BIGINT NOT NULL
+                        ) ON [PRIMARY]"); });
         }
     }
 }

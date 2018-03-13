@@ -5,6 +5,7 @@ using Dapper;
 using DapperExtensions;
 
 using ProductContext.Domain.Products;
+using ProductContext.Framework;
 
 using Projac.Connector.NetCore;
 
@@ -22,22 +23,40 @@ namespace ProductContext.Domain.Projections
     {
         public ProductProjector()
         {
-            When<Events.V1.ProductCreated>((connection, @event) =>
+            When<Envelope<Events.V1.ProductCreated>>((connection, e) =>
             {
                 connection.Insert(new ProductProjection
                 {
-                    ProductId = @event.ProductId,
-                    BrandId = @event.BrandId,
-                    GenderId = @event.GenderId,
-                    AgeGroupId = @event.AgeGroupId,
-                    Code = @event.ProductCode,
-                    BusinessUnitId = @event.BusinessUnitId
+                    ProductId = e.Message.ProductId,
+                    BrandId = e.Message.BrandId,
+                    GenderId = e.Message.GenderId,
+                    AgeGroupId = e.Message.AgeGroupId,
+                    Code = e.Message.ProductCode,
+                    BusinessUnitId = e.Message.BusinessUnitId
                 });
             });
 
-            When<CreateProductSchema>((connection, @event) =>
+            When<Envelope<SetProjectionPosition>>(async (connection, e) =>
             {
-                connection.Execute(@"IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='Product' AND XTYPE='U')
+                ProjectionPosition pPosition = await connection.QueryFirstOrDefaultAsync<ProjectionPosition>("select * from ProjectionPosition where Projection = @projection",
+                    new { projection = nameof(ProductProjection) });
+
+                if (pPosition != null)
+                {
+                    pPosition.Position = e.Message.Position;
+                    connection.Update(pPosition);
+                }
+                else
+                {
+                    connection.Insert(new ProjectionPosition
+                    {
+                        Position = e.Position,
+                        Projection = nameof(ProductProjection)
+                    });
+                }
+            });
+
+            When<CreateProductSchema>((connection, @event) => { connection.Execute(@"IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='Product' AND XTYPE='U')
                         CREATE TABLE [dbo].[Product](
 	                        [ProductId] NVARCHAR(36) NOT NULL,
 	                        [Code] NVARCHAR(100) NOT NULL,
@@ -49,8 +68,7 @@ namespace ProductContext.Domain.Projections
                         (
 	                        [ProductId] ASC
                         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-                        ) ON [PRIMARY]");
-            });
+                        ) ON [PRIMARY]"); });
 
             When<DropProductSchema>((connection, @event) =>
             {
