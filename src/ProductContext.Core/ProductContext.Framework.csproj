@@ -24,4 +24,9 @@
     <Folder Include="Value\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Projac" Version="0.1.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
+  </ItemGroup>
+
 </Project>

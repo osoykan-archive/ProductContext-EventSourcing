@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\lib\AggregateSource\src\EventStore.NetCore\AggregateSource.EventStore\AggregateSource.EventStore.csproj" />
-    <ProjectReference Include="..\..\lib\Projac\src\Projac.Connector.NetCore\Projac.Connector.NetCore.csproj" />
     <ProjectReference Include="..\ProductContext.Core\ProductContext.Framework.csproj" />
     <ProjectReference Include="..\ProductContext.Domain\ProductContext.Domain.csproj" />
   </ItemGroup>
