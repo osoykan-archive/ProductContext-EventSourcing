@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Value;
 
@@ -9,15 +8,7 @@ namespace ProductContext.Domain.Products
     {
         public readonly string Id;
 
-        public ProductId()
-        {
-            Id = Guid.NewGuid().ToString();
-        }
-
-        public ProductId(string id)
-        {
-            Id = id;
-        }
+        public ProductId(string id) => Id = id;
 
         protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality() => new List<object> { Id };
 

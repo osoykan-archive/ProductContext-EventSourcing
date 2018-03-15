@@ -1,5 +1,9 @@
-﻿using System.Net;
+﻿using System;
 using System.Threading.Tasks;
+
+using Couchbase;
+using Couchbase.Configuration.Client;
+using Couchbase.Core;
 
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
@@ -8,14 +12,26 @@ namespace ProductContext.WebApi
 {
     public static class Defaults
     {
-        public static async Task<IEventStoreConnection> GetConnection()
+        public static async Task<IEventStoreConnection> GetEsConnection(string username, string password, string uri)
         {
             ConnectionSettings settings = ConnectionSettings.Create()
-                                                            .SetDefaultUserCredentials(new UserCredentials("admin", "changeit")).Build();
+                                                            .SetDefaultUserCredentials(new UserCredentials(username, password)).Build();
 
-            IEventStoreConnection connection = EventStoreConnection.Create(settings, new IPEndPoint(IPAddress.Loopback, 1113));
+            IEventStoreConnection connection = EventStoreConnection.Create(settings, new Uri(uri));
             await connection.ConnectAsync();
             return connection;
+        }
+
+        public static Func<IBucket> GetCouchbaseBucket(string bucketName, string username = null, string password = null, params string[] uris)
+        {
+            var configuration = new ClientConfiguration();
+            foreach (string uri in uris)
+            {
+                configuration.Servers.Add(new Uri(uri));
+            }
+
+            var cluster = new Cluster(configuration);
+            return () => cluster.OpenBucket(bucketName);
         }
     }
 }

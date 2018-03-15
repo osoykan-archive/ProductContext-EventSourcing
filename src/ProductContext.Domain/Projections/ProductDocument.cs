@@ -1,6 +1,4 @@
-﻿using DapperExtensions.Mapper;
-
-namespace ProductContext.Domain.Projections
+﻿namespace ProductContext.Domain.Projections
 {
     public class ProductDocument
     {
@@ -15,14 +13,5 @@ namespace ProductContext.Domain.Projections
         public int AgeGroupId { get; set; }
 
         public int BusinessUnitId { get; set; }
-    }
-
-    public class ProductProjectionMap : AutoClassMapper<ProductDocument>
-    {
-        public ProductProjectionMap()
-        {
-            Table("Product");
-            Schema("dbo");
-        }
     }
 }

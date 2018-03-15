@@ -11,8 +11,10 @@ namespace ProductContext.Domain.Products
     public class ProductCommandHandlers : CommandHandlerBase<Product>, IHandle<Commands.V1.CreateProduct>
 
     {
-        public ProductCommandHandlers(AsyncRepository<Product> repository, Func<DateTime> getDateTime)
-            : base(repository, getDateTime)
+        public ProductCommandHandlers(
+            GetStreamName getStreamName,
+            AsyncRepository<Product> repository,
+            Func<DateTime> getDateTime) : base(getStreamName, repository, getDateTime)
         {
         }
 

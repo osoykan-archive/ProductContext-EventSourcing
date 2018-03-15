@@ -1,8 +1,5 @@
-﻿using System.Data.SqlClient;
-
-using Dapper;
-
-using DapperExtensions;
+﻿using Couchbase;
+using Couchbase.Core;
 
 using ProductContext.Domain.Products;
 using ProductContext.Framework;
@@ -11,74 +8,49 @@ using Projac;
 
 namespace ProductContext.Domain.Projections
 {
-    public class CreateProductSchema
-    {
-    }
-
-    public class DropProductSchema
-    {
-    }
-
-    public class ProductProjection : Projection<SqlConnection>
+    public class ProductProjection : Projection<IBucket>
     {
         public ProductProjection()
         {
-            When<Envelope<Events.V1.ProductCreated>>((connection, e) =>
+            When<Envelope<Events.V1.ProductCreated>>((bucket, e) =>
             {
-                connection.Insert(new ProductDocument
+                bucket.InsertAsync(new Document<ProductDocument>
                 {
-                    ProductId = e.Message.ProductId,
-                    BrandId = e.Message.BrandId,
-                    GenderId = e.Message.GenderId,
-                    AgeGroupId = e.Message.AgeGroupId,
-                    Code = e.Message.ProductCode,
-                    BusinessUnitId = e.Message.BusinessUnitId
+                    Id = e.Message.ProductId,
+                    Content = new ProductDocument
+                    {
+                        ProductId = e.Message.ProductId,
+                        AgeGroupId = e.Message.AgeGroupId,
+                        BrandId = e.Message.BrandId,
+                        BusinessUnitId = e.Message.BrandId,
+                        Code = e.Message.ProductCode,
+                        GenderId = e.Message.GenderId
+                    }
                 });
             });
 
-            When<SetProjectionPosition>(async (connection, e) =>
+            When<SetProjectionPosition>(async (bucket, e) =>
             {
-                ProjectionPosition pPosition = await 
-                    connection.QueryFirstOrDefaultAsync<ProjectionPosition>("select * from ProjectionPosition where Projection = @projection",
-                    new { projection = nameof(ProductProjection) });
+                string id = CouchbaseCheckpointStore.GetCheckpointDocumentId(nameof(ProductProjection));
+                IOperationResult<CheckpointDocument> checkpoint = await bucket.GetAsync<CheckpointDocument>(id);
 
-                if (pPosition != null)
+                if (checkpoint.Value != null)
                 {
-                    pPosition.Position = e.Position;
-                    connection.Update(pPosition);
+                    checkpoint.Value.Checkpoint = e.Position;
+                    await bucket.ReplaceAsync(new Document<CheckpointDocument>
+                    {
+                        Content = checkpoint.Value,
+                        Id = checkpoint.Id
+                    });
                 }
                 else
                 {
-                    connection.Insert(new ProjectionPosition
+                    await bucket.InsertAsync(new Document<CheckpointDocument>
                     {
-                        Position = e.Position,
-                        Projection = nameof(ProductProjection)
+                        Id = id,
+                        Content = new CheckpointDocument { Checkpoint = e.Position }
                     });
                 }
-            });
-
-            When<CreateProductSchema>((connection, @event) =>
-            {
-                connection.Execute(@"IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='Product' AND XTYPE='U')
-                        CREATE TABLE [dbo].[Product](
-	                        [ProductId] NVARCHAR(36) NOT NULL,
-	                        [Code] NVARCHAR(100) NOT NULL,
-	                        [BrandId] int NOT NULL,
-	                        [GenderId] int NOT NULL,
-	                        [AgeGroupId] int NOT NULL,
-                            [BusinessUnitId] int NOT NULL,
-                         CONSTRAINT [PK_Product] PRIMARY KEY CLUSTERED 
-                        (
-	                        [ProductId] ASC
-                        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-                        ) ON [PRIMARY]");
-            });
-
-            When<DropProductSchema>((connection, @event) =>
-            {
-                connection.Execute(
-                    @"IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME='Product' AND XTYPE='U')
-                        DROP TABLE [dbo].[Product]");
             });
         }
     }

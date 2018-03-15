@@ -19,7 +19,7 @@ namespace ProductContext.WebApi.Controllers
         }
 
         [HttpPut]
-        public Task Put([FromBody] Commands.V1.CreateProduct request) =>
+        public Task<IActionResult> Put([FromBody] Commands.V1.CreateProduct request) =>
             HandleOrThrow(request, x => _bus.PublishAsync(x));
 
         private async Task<IActionResult> HandleOrThrow<T>(T request, Func<T, Task> handler)

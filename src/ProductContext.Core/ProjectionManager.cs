@@ -42,7 +42,7 @@ namespace ProductContext.Framework
 
         private async Task StartProjection(string projectionName, Projector<TConnection> projector)
         {
-             var lastCheckpoint = await _checkpointStore.GetLastCheckpoint(projectionName);
+             Position lastCheckpoint = await _checkpointStore.GetLastCheckpoint<Position>(projectionName);
 
             var settings = new CatchUpSubscriptionSettings(
                 _maxLiveQueueSize,
@@ -53,7 +53,7 @@ namespace ProductContext.Framework
                 );
 
             _connection.SubscribeToAllFrom(
-                new Position(lastCheckpoint, lastCheckpoint), 
+                lastCheckpoint,
                 settings,
                 EventAppeared(projector),
                 LiveProcessingStarted(projector),
@@ -81,7 +81,7 @@ namespace ProductContext.Framework
                 //Log.Trace("{projection} projected {eventType}({eventId})", projection, e.Event.EventType, e.Event.EventId);
 
                 // store the current checkpoint
-                await projection.ProjectAsync(_getConnection(), new SetProjectionPosition(e.OriginalPosition.Value.CommitPosition));
+                await projection.ProjectAsync(_getConnection(), new SetProjectionPosition(e.OriginalPosition));
             };
 
         private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(Projector<TConnection> projection)

@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Data.SqlClient;
-using System.Linq;
 using System.Threading.Tasks;
 
 using AggregateSource;
 using AggregateSource.EventStore;
 using AggregateSource.EventStore.Resolvers;
+
+using Couchbase.Core;
 
 using EventStore.ClientAPI;
 
@@ -20,8 +20,6 @@ using ProductContext.Domain.Products;
 using ProductContext.Domain.Projections;
 using ProductContext.Framework;
 
-using Projac;
-
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace ProductContext.WebApi
@@ -31,10 +29,10 @@ namespace ProductContext.WebApi
         public Startup(IHostingEnvironment env)
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                                            .SetBasePath(env.ContentRootPath)
-                                            .AddJsonFile("appsettings.json", false, true)
-                                            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
-                                            .AddEnvironmentVariables();
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+                .AddEnvironmentVariables();
 
             Configuration = builder.Build();
         }
@@ -49,10 +47,13 @@ namespace ProductContext.WebApi
 
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info { Title = "Event Sourced Product Creation", Version = "v1" }); });
 
-            services.AddSingleton<IBus>(_ =>
-            {
-                IEventStoreConnection esConnection = Defaults.GetConnection().GetAwaiter().GetResult();
+            IEventStoreConnection esConnection = Defaults.GetEsConnection(
+                Configuration["Data:EventStore:Username"],
+                Configuration["Data:EventStore:Password"],
+                Configuration["Data:EventStore:Url"]).GetAwaiter().GetResult();
 
+            services.AddTransient<IBus>(_ =>
+            {
                 var bus = new InMemoryBus("bus");
                 var defaultSerializer = new DefaultEventDeserializer();
                 var concurrentUnitOfWork = new ConcurrentUnitOfWork();
@@ -68,7 +69,7 @@ namespace ProductContext.WebApi
                         new NoStreamUserCredentialsResolver()));
 
                 Func<DateTime> getDatetime = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
-                var productCommandHandlers = new ProductCommandHandlers(productRepository, getDatetime);
+                var productCommandHandlers = new ProductCommandHandlers((type, id) => $"{type.Name}-{id}", productRepository, getDatetime);
 
                 bus.Subscribe(productCommandHandlers);
 
@@ -92,34 +93,23 @@ namespace ProductContext.WebApi
 
         private async Task InitProjections()
         {
-            IEventStoreConnection esConnection = await Defaults.GetConnection();
+            IEventStoreConnection esConnection = await Defaults.GetEsConnection(
+                Configuration["Data:EventStore:Username"],
+                Configuration["Data:EventStore:Password"],
+                Configuration["Data:EventStore:Url"]);
 
-            string projectionsConnectionString = Configuration["Data:Projections:ConnectionString"];
-            Func<SqlConnection> getConnection = () => new SqlConnection(projectionsConnectionString);
-
-            var projector = new Projector<SqlConnection>(
-                Resolve.WhenEqualToHandlerMessageType(new ProductProjection().Handlers.Concat(new CheckpointProjection().Handlers).ToArray()
-                ));
-            await SetupProjectionsDb(projector, new SqlConnection(projectionsConnectionString)).ConfigureAwait(false);
+            Func<IBucket> getBucket = Defaults.GetCouchbaseBucket(nameof(ProductContext),
+                Configuration["Data:Couchbase:Username"],
+                Configuration["Data:Couchbase:Password"],
+                Configuration["Data:Couchbase:Url"]);
 
             await ProjectionManagerBuilder.With
                                           .Connection(esConnection)
                                           .Deserializer(new DefaultEventDeserializer())
-                                          .CheckpointStore(new CheckpointStore(getConnection))
+                                          .CheckpointStore(new CouchbaseCheckpointStore(getBucket))
                                           .Projections(
                                               new ProjectorDefiner().From<ProductProjection>()
-                                          ).Activate(getConnection);
-        }
-
-        private static async Task SetupProjectionsDb(Projector<SqlConnection> projector, SqlConnection connection)
-        {
-            await projector.ProjectAsync(connection, new object[]
-            {
-                new DropCheckpointSchema(),
-                new CreateCheckpointSchema(),
-                new DropProductSchema(),
-                new CreateProductSchema()
-            }).ConfigureAwait(false);
+                ).Activate(getBucket);
         }
     }
 }

@@ -1,9 +1,11 @@
-﻿namespace ProductContext.Framework
+﻿using EventStore.ClientAPI;
+
+namespace ProductContext.Framework
 {
     public class SetProjectionPosition
     {
-        public readonly long Position;
+        public readonly Position? Position;
 
-        public SetProjectionPosition(long position) => Position = position;
+        public SetProjectionPosition(Position? position) => Position = position;
     }
 }
