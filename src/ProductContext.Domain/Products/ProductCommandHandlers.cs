@@ -19,7 +19,7 @@ namespace ProductContext.Domain.Products
         }
 
         public Task HandleAsync(Commands.V1.CreateProduct command) =>
-            Add(repository =>
+            Add(async repository =>
             {
                 string productId = Guid.NewGuid().ToString();
 

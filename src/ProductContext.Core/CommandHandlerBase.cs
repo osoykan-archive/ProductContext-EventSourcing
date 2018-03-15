@@ -26,9 +26,9 @@ namespace ProductContext.Framework
             _getStreamName = getStreamName;
         }
 
-        protected async Task Add(Action<AsyncRepository<T>> when)
+        protected async Task Add(Func<AsyncRepository<T>, Task> when)
         {
-            when(_repository);
+            await when(_repository);
 
             await AppendToStream();
         }
@@ -62,16 +62,14 @@ namespace ProductContext.Framework
 
                 try
                 {
-
                     await _repository.Connection.AppendToStreamAsync(stream, aggregate.ExpectedVersion, changes);
                 }
-                catch(WrongExpectedVersionException)
+                catch (WrongExpectedVersionException)
                 {
                     StreamEventsSlice page = await _repository.Connection.ReadStreamEventsBackwardAsync(stream, -1, 1, false);
                     throw new WrongExpectedStreamVersionException(
                         $"Failed to append stream {stream} with expected version {aggregate.ExpectedVersion}. " +
                         $"{(page.Status == SliceReadStatus.StreamNotFound ? "Stream not found!" : $"Current Version: {page.LastEventNumber}")}");
-
                 }
             }
         }

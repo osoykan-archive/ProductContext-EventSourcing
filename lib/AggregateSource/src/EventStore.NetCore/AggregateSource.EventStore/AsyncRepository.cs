@@ -92,8 +92,7 @@ namespace AggregateSource.EventStore
         /// <returns>The found <typeparamref name="TAggregateRoot" />, or empty if not found.</returns>
         public async Task<Optional<TAggregateRoot>> GetOptionalAsync(string identifier)
         {
-            Aggregate aggregate;
-            if (UnitOfWork.TryGet(identifier, out aggregate))
+            if (UnitOfWork.TryGet(identifier, out Aggregate aggregate))
             {
                 return new Optional<TAggregateRoot>((TAggregateRoot)aggregate.Root);
             }
@@ -113,10 +112,7 @@ namespace AggregateSource.EventStore
             root.Initialize(slice.Events.Select(resolved => Configuration.Deserializer.Deserialize(resolved)));
             while (!slice.IsEndOfStream)
             {
-                slice =
-                    await
-                        Connection.ReadStreamEventsForwardAsync(streamName, slice.NextEventNumber, Configuration.SliceSize,
-                            false, streamUserCredentials);
+                slice = await Connection.ReadStreamEventsForwardAsync(streamName, slice.NextEventNumber, Configuration.SliceSize, false, streamUserCredentials);
                 root.Initialize(slice.Events.Select(resolved => Configuration.Deserializer.Deserialize(resolved)));
             }
 
