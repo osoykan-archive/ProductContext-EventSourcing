@@ -13,10 +13,10 @@
       "launchBrowser" : true,
       "launchUrl" : "swagger",
       "environmentVariables" : {
-        "ASPNETCORE_ENVIRONMENT" : "Development"
+        "ASPNETCORE_ENVIRONMENT" : "Local"
       }
     },
-    "ProductContext.WebApi" : {
+    "Development" : {
       "commandName" : "Project",
       "launchBrowser" : true,
       "launchUrl" : "swagger",

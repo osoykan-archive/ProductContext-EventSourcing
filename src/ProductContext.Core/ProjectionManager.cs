@@ -6,19 +6,23 @@ using AggregateSource.EventStore;
 
 using EventStore.ClientAPI;
 
+using ProductContext.Framework.Logging;
+
 using Projac;
 
 namespace ProductContext.Framework
 {
     public class ProjectionManager<TConnection>
     {
+        private static readonly ILog Log = LogProvider.For<ProjectionManager<TConnection>>();
+        private readonly ICheckpointStore _checkpointStore;
+
         private readonly IEventStoreConnection _connection;
-        private readonly int _maxLiveQueueSize;
         private readonly Func<TConnection> _getConnection;
+        private readonly int _maxLiveQueueSize;
         private readonly ProjectorDefiner[] _projectorDefiners;
         private readonly int _readBatchSize;
         private readonly IEventDeserializer _serializer;
-        private readonly ICheckpointStore _checkpointStore;
 
         internal ProjectionManager(
             IEventStoreConnection connection,
@@ -42,12 +46,12 @@ namespace ProductContext.Framework
 
         private async Task StartProjection(string projectionName, Projector<TConnection> projector)
         {
-             Position lastCheckpoint = await _checkpointStore.GetLastCheckpoint<Position>(projectionName);
+            Position lastCheckpoint = await _checkpointStore.GetLastCheckpoint<Position>(projectionName);
 
             var settings = new CatchUpSubscriptionSettings(
                 _maxLiveQueueSize,
                 _readBatchSize,
-                true, //Log.IsTraceEnabled(),
+                Log.IsTraceEnabled(),
                 false,
                 projectionName
                 );
@@ -55,15 +59,14 @@ namespace ProductContext.Framework
             _connection.SubscribeToAllFrom(
                 lastCheckpoint,
                 settings,
-                EventAppeared(projector),
-                LiveProcessingStarted(projector),
-                SubscriptionDropped(projector));
+                EventAppeared(projector, projectionName),
+                LiveProcessingStarted(projector, projectionName),
+                SubscriptionDropped(projector, projectionName));
         }
 
         private static object ComposeEnvelope(object @event, long position) => Activator.CreateInstance(typeof(Envelope<>).MakeGenericType(@event.GetType()), @event, position);
 
-
-        private Action<EventStoreCatchUpSubscription, ResolvedEvent> EventAppeared(Projector<TConnection> projection)
+        private Action<EventStoreCatchUpSubscription, ResolvedEvent> EventAppeared(Projector<TConnection> projection, string projectionName)
             => async (_, e) =>
             {
                 // check system event
@@ -78,13 +81,13 @@ namespace ProductContext.Framework
                 // try to execute the projection
                 await projection.ProjectAsync(_getConnection(), ComposeEnvelope(_serializer.Deserialize(e), e.OriginalPosition.Value.CommitPosition));
 
-                //Log.Trace("{projection} projected {eventType}({eventId})", projection, e.Event.EventType, e.Event.EventId);
+                Log.Debug("{projection} projected {eventType}({eventId})", projectionName, e.Event.EventType, e.Event.EventId);
 
                 // store the current checkpoint
                 await projection.ProjectAsync(_getConnection(), new SetProjectionPosition(e.OriginalPosition));
             };
 
-        private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(Projector<TConnection> projection)
+        private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(Projector<TConnection> projection, string projectionName)
             => (subscription, reason, ex) =>
             {
                 // TODO: Reevaluate stopping subscriptions when issues with reconnect get fixed.
@@ -96,7 +99,7 @@ namespace ProductContext.Framework
                 switch (reason)
                 {
                     case SubscriptionDropReason.UserInitiated:
-                        // Log.Debug("{projection} projection stopped gracefully.", projection);
+                        Log.Debug("{projection} projection stopped gracefully.", projection);
                         break;
                     case SubscriptionDropReason.SubscribingError:
                     case SubscriptionDropReason.ServerError:
@@ -104,25 +107,22 @@ namespace ProductContext.Framework
                     case SubscriptionDropReason.CatchUpError:
                     case SubscriptionDropReason.ProcessingQueueOverflow:
                     case SubscriptionDropReason.EventHandlerException:
-                        //Log.ErrorException(
-                        //    "{projection} projection stopped because of a transient error ({reason}). " +
-                        //    "Attempting to restart...",
-                        //    ex, projection, reason);
+                        Log.ErrorException(
+                            "{projection} projection stopped because of a transient error ({reason}). " +
+                            "Attempting to restart...",
+                            ex, projectionName, reason);
                         Task.Run(() => StartProjection(subscription.SubscriptionName, projection));
                         break;
                     default:
-                        //Log.FatalException(
-                        //    "{projection} projection stopped because of an internal error ({reason}). " +
-                        //    "Please check your logs for details.",
-                        //    ex, projection, reason);
+                        Log.FatalException(
+                            "{projection} projection stopped because of an internal error ({reason}). " +
+                            "Please check your logs for details.",
+                            ex, projectionName, reason);
                         break;
                 }
             };
 
-        private static Action<EventStoreCatchUpSubscription> LiveProcessingStarted(Projector<TConnection> projection)
-            => _ =>
-            {
-                //Log.Debug("{projection} projection has caught up, now processing live!", projection);
-            };
+        private static Action<EventStoreCatchUpSubscription> LiveProcessingStarted(Projector<TConnection> projection, string projectionName)
+            => _ => { Log.Debug("{projection} projection has caught up, now processing live!", projectionName); };
     }
 }

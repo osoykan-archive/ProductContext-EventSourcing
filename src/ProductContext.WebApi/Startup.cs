@@ -19,6 +19,7 @@ using NodaTime;
 using ProductContext.Domain.Products;
 using ProductContext.Domain.Projections;
 using ProductContext.Framework;
+using ProductContext.WebApi.Plumbing;
 
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -37,7 +38,7 @@ namespace ProductContext.WebApi
             Configuration = builder.Build();
         }
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services) => ConfigureServicesAsync(services).GetAwaiter().GetResult();
 
@@ -68,8 +69,8 @@ namespace ProductContext.WebApi
                         new PassThroughStreamNameResolver(),
                         new NoStreamUserCredentialsResolver()));
 
-                Func<DateTime> getDatetime = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
-                var productCommandHandlers = new ProductCommandHandlers((type, id) => $"{type.Name}-{id}", productRepository, getDatetime);
+                DateTime GetDatetime() => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
+                var productCommandHandlers = new ProductCommandHandlers((type, id) => $"{type.Name}-{id}", productRepository, GetDatetime);
 
                 bus.Subscribe(productCommandHandlers);
 
@@ -81,7 +82,7 @@ namespace ProductContext.WebApi
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsLocal())
             {
                 app.UseDeveloperExceptionPage();
             }
