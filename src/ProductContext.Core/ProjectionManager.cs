@@ -59,21 +59,24 @@ namespace ProductContext.Framework
             _connection.SubscribeToAllFrom(
                 lastCheckpoint,
                 settings,
-                EventAppeared(projector, projectionName),
+                EventAppeared(projector, projectionName, @event => _checkpointStore.SetLastCheckpoint(projectionName, @event.OriginalPosition)),
                 LiveProcessingStarted(projector, projectionName),
                 SubscriptionDropped(projector, projectionName));
         }
 
         private static object ComposeEnvelope(object @event, long position) => Activator.CreateInstance(typeof(Envelope<>).MakeGenericType(@event.GetType()), @event, position);
 
-        private Action<EventStoreCatchUpSubscription, ResolvedEvent> EventAppeared(Projector<TConnection> projection, string projectionName)
-            => async (_, e) =>
-            {
+        private Action<EventStoreCatchUpSubscription, ResolvedEvent> EventAppeared(
+            Projector<TConnection> projection,
+            string projectionName,
+            Func<ResolvedEvent, Task> setCheckpointfunc
+            ) => async (_, e) =>
+             {
                 // check system event
                 if (e.OriginalEvent.EventType.StartsWith("$"))
-                {
-                    return;
-                }
+                 {
+                     return;
+                 }
 
                 // get the configured clr type name for deserializing the event
                 //var eventType = _typeMapper.GetType(e.Event.EventType);
@@ -81,11 +84,15 @@ namespace ProductContext.Framework
                 // try to execute the projection
                 await projection.ProjectAsync(_getConnection(), ComposeEnvelope(_serializer.Deserialize(e), e.OriginalPosition.Value.CommitPosition));
 
-                Log.Debug("{projection} projected {eventType}({eventId})", projectionName, e.Event.EventType, e.Event.EventId);
+                 Log.Debug("{projection} projected {eventType}({eventId})", projectionName, e.Event.EventType, e.Event.EventId);
 
                 // store the current checkpoint
+                //1.Way
                 await projection.ProjectAsync(_getConnection(), new SetProjectionPosition(e.OriginalPosition));
-            };
+
+                //2.Way
+                await setCheckpointfunc(e);
+             };
 
         private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(Projector<TConnection> projection, string projectionName)
             => (subscription, reason, ex) =>
