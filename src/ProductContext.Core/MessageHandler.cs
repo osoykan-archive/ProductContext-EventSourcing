@@ -18,12 +18,7 @@ namespace ProductContext.Framework
 
         public MessageHandler(IHandle<T> handler, string handlerName)
         {
-            if (handler == null)
-            {
-                throw new ArgumentNullException("handler");
-            }
-
-            _handler = handler;
+            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
             HandlerName = handlerName ?? string.Empty;
         }
 
@@ -31,8 +26,7 @@ namespace ProductContext.Framework
 
         public async Task<bool> TryHandleAsync(Message message)
         {
-            var msg = message as T;
-            if (msg != null)
+            if (message is T msg)
             {
                 await _handler.HandleAsync(msg).ConfigureAwait(false);
                 return true;
