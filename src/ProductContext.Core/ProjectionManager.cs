@@ -88,7 +88,7 @@ namespace ProductContext.Framework
 
                 // store the current checkpoint
                 //1.Way
-                await projection.ProjectAsync(_getConnection(), new SetProjectionPosition(e.OriginalPosition));
+                // await projection.ProjectAsync(_getConnection(), new SetProjectionPosition(e.OriginalPosition));
 
                 //2.Way
                 await setCheckpointfunc(e);
