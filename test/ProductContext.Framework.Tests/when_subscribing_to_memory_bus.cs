@@ -1,12 +1,11 @@
 using System;
 using System.Threading.Tasks;
 
-using ProductContext.Common.Bus.Tests.Helpers;
-using ProductContext.Framework;
+using ProductContext.Framework.Tests.Helpers;
 
 using Xunit;
 
-namespace ProductContext.Common.Bus.Tests
+namespace ProductContext.Framework.Tests
 {
     public class when_subscribing_to_memory_bus
     {

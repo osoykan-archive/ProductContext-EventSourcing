@@ -1,6 +1,16 @@
 ﻿<SolutionConfiguration>
   <Settings>
     <AllowParallelTestExecution>False</AllowParallelTestExecution>
+    <MetricsExclusionList>
+      <Value>lib\AggregateSource\src\Testing\AggregateSource.Testing.Xunit\AggregateSource.Testing.Xunit.csproj</Value>
+      <Value>test\ProductContext.Domain.Tests\ProductContext.Domain.Tests.csproj</Value>
+      <Value>test\ProductContext.Framework.Tests\ProductContext.Framework.Tests.csproj</Value>
+      <Value>lib\Value\Value.Standard\Value.Standard.csproj</Value>
+      <Value>lib\AggregateSource\src\Core\AggregateSource\AggregateSource.csproj</Value>
+      <Value>lib\AggregateSource\src\EventStore.NetCore\AggregateSource.EventStore\AggregateSource.EventStore.csproj</Value>
+      <Value>lib\AggregateSource\src\Testing\AggregateSource.Testing\AggregateSource.Testing.csproj</Value>
+      <Value>src\ProductContext.WebApi\ProductContext.WebApi.csproj</Value>
+    </MetricsExclusionList>
     <SolutionConfigured>True</SolutionConfigured>
   </Settings>
 </SolutionConfiguration>

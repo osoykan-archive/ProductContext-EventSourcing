@@ -25,11 +25,11 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Value", "lib\Value\Value\Va
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductContext.Domain", "src\ProductContext.Domain\ProductContext.Domain.csproj", "{0A4C9D77-D362-496A-8466-C5EEA88D5FD8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductContext.Framework", "src\ProductContext.Core\ProductContext.Framework.csproj", "{7B8C0D82-9F10-4C77-9F2E-44BCE11F7372}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductContext.Framework", "src\ProductContext.Framework\ProductContext.Framework.csproj", "{7B8C0D82-9F10-4C77-9F2E-44BCE11F7372}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A13A7111-BAFA-44EA-9EA5-6BF0BFBF63C8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductContext.Common.Bus.Tests", "test\ProductContext.Common.Bus.Tests\ProductContext.Common.Bus.Tests.csproj", "{D2FC3BD7-0F7F-4822-B149-668EC2958332}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductContext.Framework.Tests", "test\ProductContext.Framework.Tests\ProductContext.Framework.Tests.csproj", "{D2FC3BD7-0F7F-4822-B149-668EC2958332}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductContext.Domain.Tests", "test\ProductContext.Domain.Tests\ProductContext.Domain.Tests.csproj", "{A32179BA-D904-4615-A1FE-E33415430DE4}"
 EndProject

@@ -1,6 +1,4 @@
-﻿using ProductContext.Framework;
-
-namespace ProductContext.Common.Bus.Tests.Helpers
+﻿namespace ProductContext.Framework.Tests.Helpers
 {
     public class TestMessage : Message
     {

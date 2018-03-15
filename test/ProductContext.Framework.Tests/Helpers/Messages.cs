@@ -1,10 +1,8 @@
 using System;
 
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-
-namespace ProductContext.Common.Bus.Tests.Helpers
+namespace ProductContext.Framework.Tests.Helpers
 {
-    public class DeferredExecutionTestMessage : Message
+    public class DeferredExecutionTestMessage : Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Message
     {
         private readonly Action _action;
 
@@ -21,7 +19,7 @@ namespace ProductContext.Common.Bus.Tests.Helpers
         }
     }
 
-    public class ExecutableTestMessage : Message
+    public class ExecutableTestMessage : Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Message
     {
         private readonly Action _action;
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ProductContext.Common.Bus.Tests.Helpers
+namespace ProductContext.Framework.Tests.Helpers
 {
     public static class CollectionsExtensions
     {

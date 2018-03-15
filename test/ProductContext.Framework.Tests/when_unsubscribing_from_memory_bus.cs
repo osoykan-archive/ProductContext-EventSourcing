@@ -3,12 +3,11 @@ using System.Threading.Tasks;
 
 using FluentAssertions;
 
-using ProductContext.Common.Bus.Tests.Helpers;
-using ProductContext.Framework;
+using ProductContext.Framework.Tests.Helpers;
 
 using Xunit;
 
-namespace ProductContext.Common.Bus.Tests
+namespace ProductContext.Framework.Tests
 {
     public class when_unsubscribing_from_memory_bus
     {
