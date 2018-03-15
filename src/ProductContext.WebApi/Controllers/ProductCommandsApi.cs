@@ -22,6 +22,14 @@ namespace ProductContext.WebApi.Controllers
         public Task<IActionResult> Put([FromBody] Commands.V1.CreateProduct request) =>
             HandleOrThrow(request, x => _bus.PublishAsync(x));
 
+        [HttpPut]
+        public Task<IActionResult> Put([FromBody] Commands.V1.AddContentToProduct request) =>
+            HandleOrThrow(request, x => _bus.PublishAsync(x));
+
+        [HttpPut]
+        public Task<IActionResult> Put([FromBody] Commands.V1.AddVariantToProduct request) =>
+            HandleOrThrow(request, x => _bus.PublishAsync(x));
+
         private async Task<IActionResult> HandleOrThrow<T>(T request, Func<T, Task> handler)
         {
             try

@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using AggregateSource;
+
+using ProductContext.Domain.Contracts;
 
 namespace ProductContext.Domain.Products
 {
@@ -11,26 +15,84 @@ namespace ProductContext.Domain.Products
         private Product()
         {
             Register<Events.V1.ProductCreated>(When);
+            Register<Events.V1.VariantAddedToProduct>(When);
+            Register<Events.V1.ContentAddedToProduct>(When);
         }
 
         public ProductId ProductId { get; private set; }
 
-        public ProductDetail Detail { get; private set; }
+        public int BusinessUnitId { get; private set; }
 
-        public static Product Create(string id, int brandId, string code, int genderId, int ageGroupId, int businessUnitId)
+        public string Code { get; private set; }
+
+        public int BrandId { get; private set; }
+
+        public List<ProductContent> Contents { get; private set; }
+
+        public List<ProductVariant> Variants { get; private set; }
+
+        public static Product Create(string id, int brandId, string code, int businessUnitId)
         {
-            var aggregate = Factory();
+            Product aggregate = Factory();
             aggregate.ApplyChange(
-                new Events.V1.ProductCreated(id, code, brandId, genderId, ageGroupId, businessUnitId)
+                new Events.V1.ProductCreated(id, code, brandId, businessUnitId)
             );
 
             return aggregate;
         }
 
+        private void When(Events.V1.ContentAddedToProduct @event)
+        {
+            var content = new ProductContent(ApplyChange);
+            content.Route(@event);
+            Contents.Add(content);
+        }
+
+        private void When(Events.V1.VariantAddedToProduct @event)
+        {
+            var variant = new ProductVariant(ApplyChange);
+            variant.Route(@event);
+            Variants.Add(variant);
+        }
+
         private void When(Events.V1.ProductCreated @event)
         {
             ProductId = new ProductId(@event.ProductId);
-            Detail = new ProductDetail(@event.GenderId, @event.AgeGroupId, @event.BusinessUnitId);
+            BusinessUnitId = @event.BusinessUnitId;
+            Code = @event.ProductCode;
+            BrandId = @event.BrandId;
+            Contents = new List<ProductContent>();
+            Variants = new List<ProductVariant>();
+        }
+
+        public void AddContent(string contentId, string description, string variantTypeValueId)
+        {
+            if (Contents.Any(x => x.VariantValue.VariantTypeValueId == (VariantTypeValueId)variantTypeValueId))
+            {
+                throw new InvalidOperationException($"There is already a Content for this Product with {variantTypeValueId}");
+            }
+
+            ApplyChange(
+                new Events.V1.ContentAddedToProduct(ProductId.Id,
+                    contentId,
+                    description,
+                    variantTypeValueId,
+                    (int)Enums.ProductContentStatus.Draft,
+                    (int)Enums.VariantType.Color)
+            );
+        }
+
+        public void AddVariant(string contentId, string variantId, string barcode, string variantTypeValueId)
+        {
+            ProductContent content = Contents.FirstOrDefault(x => x.ProductContentId == contentId);
+            if (content == null)
+            {
+                throw new InvalidOperationException("Content not found for Variant creation.");
+            }
+
+            ApplyChange(
+                new Events.V1.VariantAddedToProduct(ProductId.Id, contentId, variantId, barcode, variantTypeValueId)
+            );
         }
     }
 }

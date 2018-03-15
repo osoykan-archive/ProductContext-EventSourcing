@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using NodaTime;
 
+using ProductContext.Domain.Contracts;
 using ProductContext.Domain.Products;
 using ProductContext.Domain.Projections;
 using ProductContext.Framework;
@@ -30,10 +31,10 @@ namespace ProductContext.WebApi
         public Startup(IHostingEnvironment env)
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", false, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
-                .AddEnvironmentVariables();
+                                            .SetBasePath(env.ContentRootPath)
+                                            .AddJsonFile("appsettings.json", false, true)
+                                            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+                                            .AddEnvironmentVariables();
 
             Configuration = builder.Build();
         }
@@ -70,9 +71,11 @@ namespace ProductContext.WebApi
                         new NoStreamUserCredentialsResolver()));
 
                 DateTime GetDatetime() => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
-                var productCommandHandlers = new ProductCommandHandlers((type, id) => $"{type.Name}-{id}", productRepository, GetDatetime);
 
-                bus.Subscribe(productCommandHandlers);
+                var productCommandHandlers = new ProductCommandHandlers((type, id) => $"{type.Name}-{id}", productRepository, GetDatetime);
+                bus.Subscribe<Commands.V1.CreateProduct>(productCommandHandlers);
+                bus.Subscribe<Commands.V1.AddVariantToProduct>(productCommandHandlers);
+                bus.Subscribe<Commands.V1.AddContentToProduct>(productCommandHandlers);
 
                 return bus;
             });
@@ -110,7 +113,7 @@ namespace ProductContext.WebApi
                                           .CheckpointStore(new CouchbaseCheckpointStore(getBucket))
                                           .Projections(
                                               new ProjectorDefiner().From<ProductProjection>()
-                ).Activate(getBucket);
+                                          ).Activate(getBucket);
         }
     }
 }

@@ -20,13 +20,31 @@ namespace ProductContext.Domain.Projections
                     Content = new ProductDocument
                     {
                         ProductId = e.Message.ProductId,
-                        AgeGroupId = e.Message.AgeGroupId,
                         BrandId = e.Message.BrandId,
                         BusinessUnitId = e.Message.BrandId,
                         Code = e.Message.ProductCode,
-                        GenderId = e.Message.GenderId
+                        Position = e.Position
                     }
                 });
+            });
+
+            When<Envelope<Events.V1.ContentAddedToProduct>>(async (bucket, e) =>
+            {
+                IOperationResult<ProductDocument> productDocument = await bucket.GetAsync<ProductDocument>(e.Message.ProductId);
+                var product = productDocument.Value;
+                if (product != null && product.Position < e.Position)
+                {
+                    product.Contents.Add(new ProductContentDocument()
+                    {
+                        ProductContentId = e.Message.ProductContentId,
+                        VariantTypeValueId = e.Message.VariantTypeValueId,
+                        Status = e.Message.ProductContentStatus,
+                        Description = e.Message.Description,
+                        VariantTypeId = e.Message.VariantType
+                    });
+                }
+
+
             });
 
             When<SetProjectionPosition>(async (bucket, e) =>
