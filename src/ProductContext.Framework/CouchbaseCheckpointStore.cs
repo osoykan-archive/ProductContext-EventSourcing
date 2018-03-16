@@ -4,9 +4,6 @@ using System.Threading.Tasks;
 using Couchbase;
 using Couchbase.Core;
 
-using EventStore.ClientAPI;
-
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace ProductContext.Framework
@@ -41,14 +38,11 @@ namespace ProductContext.Framework
                 if (doc.Value != null)
                 {
                     doc.Value.Checkpoint = checkpoint;
+                    await session.ReplaceAsync(new Document<CheckpointDocument> { Id = id, Content = doc.Value });
                 }
                 else
                 {
-                    await session.UpsertAsync(new Document<CheckpointDocument>
-                    {
-                        Content = new CheckpointDocument { Checkpoint = checkpoint },
-                        Id = id
-                    });
+                    await session.UpsertAsync(new Document<CheckpointDocument> { Content = new CheckpointDocument { Checkpoint = checkpoint }, Id = id });
                 }
             }
         }
