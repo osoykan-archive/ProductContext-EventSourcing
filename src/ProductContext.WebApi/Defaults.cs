@@ -31,6 +31,11 @@ namespace ProductContext.WebApi
             }
 
             var cluster = new Cluster(configuration);
+            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            {
+                cluster.Authenticate(username, password);
+            }
+
             return () => cluster.OpenBucket(bucketName);
         }
     }
