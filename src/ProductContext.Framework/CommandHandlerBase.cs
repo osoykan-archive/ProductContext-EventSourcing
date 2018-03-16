@@ -30,19 +30,21 @@ namespace ProductContext.Framework
         {
             await when(_repository);
 
-            await AppendToStream();
+            await AppendToStream(null);
         }
 
         protected async Task Update(string id, Func<T, Task> when)
         {
-            T loadedAggregate = await _repository.GetAsync(id).ConfigureAwait(false);
+            string stream = _getStreamName(typeof(T), id);
+
+            T loadedAggregate = await _repository.GetAsync(stream);
 
             await when(loadedAggregate).ConfigureAwait(false);
 
-            await AppendToStream();
+            await AppendToStream(stream);
         }
 
-        private async Task AppendToStream()
+        private async Task AppendToStream(string stream)
         {
             foreach (Aggregate aggregate in _repository.UnitOfWork.GetChanges())
             {
@@ -57,8 +59,10 @@ namespace ProductContext.Framework
                                                        timeStamp = _getDateTime()
                                                    }))
                                                    )).ToArray();
-
-                string stream = _getStreamName(typeof(T), aggregate.Identifier);
+                if (string.IsNullOrEmpty(stream))
+                { 
+                    stream = _getStreamName(typeof(T), aggregate.Identifier);
+                }
 
                 try
                 {

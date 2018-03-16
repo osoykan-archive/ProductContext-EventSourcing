@@ -36,7 +36,7 @@ namespace ProductContext.Domain.Products
             Product aggregate = Factory();
             aggregate.ApplyChange(
                 new Events.V1.ProductCreated(id, code, brandId, businessUnitId)
-            );
+                );
 
             return aggregate;
         }
@@ -67,10 +67,8 @@ namespace ProductContext.Domain.Products
 
         public void AddContent(string contentId, string description, string variantTypeValueId)
         {
-            if (Contents.Any(x => x.VariantValue.VariantTypeValueId == (VariantTypeValueId)variantTypeValueId))
-            {
-                throw new InvalidOperationException($"There is already a Content for this Product with {variantTypeValueId}");
-            }
+            if (Contents.Any(x => x.VariantValue.VariantTypeValueId == (VariantTypeValueId)variantTypeValueId)) { return; }
+            if (Contents.Any(x => x.ProductContentId == contentId)) { return; }
 
             ApplyChange(
                 new Events.V1.ContentAddedToProduct(ProductId.Id,
@@ -79,20 +77,21 @@ namespace ProductContext.Domain.Products
                     variantTypeValueId,
                     (int)Enums.ProductContentStatus.Draft,
                     (int)Enums.VariantType.Color)
-            );
+                );
         }
 
         public void AddVariant(string contentId, string variantId, string barcode, string variantTypeValueId)
         {
             ProductContent content = Contents.FirstOrDefault(x => x.ProductContentId == contentId);
-            if (content == null)
-            {
-                throw new InvalidOperationException("Content not found for Variant creation.");
-            }
+            if (content == null) { throw new InvalidOperationException("Content not found for Variant creation."); }
+
+            if (Variants.Any(x => x.ProductVariantId == variantId)) { return; }
+            if (Variants.Any(x => x.Barcode == barcode)) { return; }
+            if (Variants.Any(x => x.VariantValue.VariantTypeValueId == variantTypeValueId)) { return; }
 
             ApplyChange(
-                new Events.V1.VariantAddedToProduct(ProductId.Id, contentId, variantId, barcode, variantTypeValueId)
-            );
+                new Events.V1.VariantAddedToProduct(ProductId.Id, contentId, variantId, barcode, variantTypeValueId, (int)Enums.VariantType.Size)
+                );
         }
     }
 }

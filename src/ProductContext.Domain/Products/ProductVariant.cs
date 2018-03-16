@@ -2,6 +2,8 @@
 
 using AggregateSource;
 
+using ProductContext.Domain.Contracts;
+
 namespace ProductContext.Domain.Products
 {
     public class ProductVariant : Entity
@@ -17,6 +19,8 @@ namespace ProductContext.Domain.Products
 
         public ProductId ProductId { get; private set; }
 
+        public ProductVariantTypeValue VariantValue { get; private set; }
+
         public string Barcode { get; private set; }
 
         private void When(Events.V1.VariantAddedToProduct @event)
@@ -24,6 +28,7 @@ namespace ProductContext.Domain.Products
             ProductContentId = new ProductContentId(@event.ProductContentId);
             ProductVariantId = new ProductVariantId(@event.ProductVariantId);
             ProductId = new ProductId(@event.ProductId);
+            VariantValue = new ProductVariantTypeValue(@event.ProductId, @event.VariantTypeValueId, (Enums.VariantType)@event.VariantType);
             Barcode = @event.Barcode;
         }
     }

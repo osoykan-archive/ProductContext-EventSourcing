@@ -19,14 +19,17 @@ namespace ProductContext.WebApi.Controllers
         }
 
         [HttpPut]
+        [Route("create")]
         public Task<IActionResult> Put([FromBody] Commands.V1.CreateProduct request) =>
             HandleOrThrow(request, x => _bus.PublishAsync(x));
 
         [HttpPut]
+        [Route("addcontent")]
         public Task<IActionResult> Put([FromBody] Commands.V1.AddContentToProduct request) =>
             HandleOrThrow(request, x => _bus.PublishAsync(x));
 
         [HttpPut]
+        [Route("addvariant")]
         public Task<IActionResult> Put([FromBody] Commands.V1.AddVariantToProduct request) =>
             HandleOrThrow(request, x => _bus.PublishAsync(x));
 

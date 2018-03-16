@@ -38,7 +38,7 @@ namespace ProductContext.Framework
                 string id = GetCheckpointDocumentId(projection);
                 IOperationResult<CheckpointDocument> doc = await session.GetAsync<CheckpointDocument>(id);
 
-                if (doc != null)
+                if (doc.Value != null)
                 {
                     doc.Value.Checkpoint = checkpoint;
                 }

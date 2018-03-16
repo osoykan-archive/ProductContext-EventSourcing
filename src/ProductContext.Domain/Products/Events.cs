@@ -29,14 +29,22 @@ namespace ProductContext.Domain.Products
                 public readonly string ProductId;
                 public readonly string ProductVariantId;
                 public readonly string VariantTypeValueId;
+                public readonly int VariantType;
 
-                public VariantAddedToProduct(string productId, string productContentId, string productVariantId, string barcode, string variantTypeValueId)
+                public VariantAddedToProduct(
+                    string productId,
+                    string productContentId,
+                    string productVariantId,
+                    string barcode,
+                    string variantTypeValueId,
+                    int variantType)
                 {
                     ProductId = productId;
                     ProductContentId = productContentId;
                     Barcode = barcode;
                     ProductVariantId = productVariantId;
                     VariantTypeValueId = variantTypeValueId;
+                    VariantType = variantType;
                 }
             }
 
@@ -47,9 +55,15 @@ namespace ProductContext.Domain.Products
                 public readonly string ProductId;
                 public readonly string VariantTypeValueId;
                 public readonly int ProductContentStatus;
-                public int VariantType;
+                public readonly int VariantType;
 
-                public ContentAddedToProduct(string productId, string productContentId, string description, string variantTypeValueId, int productContentStatus, int variantType)
+                public ContentAddedToProduct(
+                    string productId,
+                    string productContentId,
+                    string description,
+                    string variantTypeValueId,
+                    int productContentStatus,
+                    int variantType)
                 {
                     ProductId = productId;
                     Description = description;

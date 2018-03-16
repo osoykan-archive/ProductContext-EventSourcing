@@ -31,10 +31,10 @@ namespace ProductContext.WebApi
         public Startup(IHostingEnvironment env)
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                                            .SetBasePath(env.ContentRootPath)
-                                            .AddJsonFile("appsettings.json", false, true)
-                                            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
-                                            .AddEnvironmentVariables();
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+                .AddEnvironmentVariables();
 
             Configuration = builder.Build();
         }
@@ -113,7 +113,7 @@ namespace ProductContext.WebApi
                                           .CheckpointStore(new CouchbaseCheckpointStore(getBucket))
                                           .Projections(
                                               new ProjectorDefiner().From<ProductProjection>()
-                                          ).Activate(getBucket);
+                ).Activate(getBucket);
         }
     }
 }

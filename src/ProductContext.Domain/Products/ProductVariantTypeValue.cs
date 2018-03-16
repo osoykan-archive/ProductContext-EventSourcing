@@ -6,9 +6,9 @@ using Value;
 
 namespace ProductContext.Domain.Products
 {
-    public class ProductContentVariantValue : ValueType<ProductContentVariantValue>
+    public class ProductVariantTypeValue : ValueType<ProductVariantTypeValue>
     {
-        public ProductContentVariantValue(ProductId productId, VariantTypeValueId variantTypeValueId, Enums.VariantType variantType)
+        public ProductVariantTypeValue(ProductId productId, VariantTypeValueId variantTypeValueId, Enums.VariantType variantType)
         {
             ProductId = productId;
             VariantTypeValueId = variantTypeValueId;
@@ -21,9 +21,6 @@ namespace ProductContext.Domain.Products
 
         public Enums.VariantType VariantType { get; }
 
-        protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality()
-        {
-            return new List<object> { ProductId, VariantTypeValueId, VariantType };
-        }
+        protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality() => new List<object> { ProductId, VariantTypeValueId, VariantType };
     }
 }
