@@ -1,4 +1,4 @@
-﻿using AggregateSource.EventStore.NetCore.Snapshots;
+﻿using AggregateSource.EventStore.Snapshots;
 
 namespace AggregateSource.EventStore.Builders
 {

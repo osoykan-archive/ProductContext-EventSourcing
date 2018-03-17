@@ -1,5 +1,4 @@
-﻿using AggregateSource.EventStore.NetCore;
-using AggregateSource.EventStore.NetCore.Snapshots;
+﻿using AggregateSource.EventStore.Snapshots;
 using AggregateSource.EventStore.Stubs;
 
 namespace AggregateSource.EventStore.Builders

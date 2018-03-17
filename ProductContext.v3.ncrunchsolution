@@ -10,6 +10,7 @@
       <Value>lib\AggregateSource\src\EventStore.NetCore\AggregateSource.EventStore\AggregateSource.EventStore.csproj</Value>
       <Value>lib\AggregateSource\src\Testing\AggregateSource.Testing\AggregateSource.Testing.csproj</Value>
       <Value>src\ProductContext.WebApi\ProductContext.WebApi.csproj</Value>
+      <Value>lib\AggregateSource\src\EventStore.NetCore\AggregateSource.EventStore.Tests\AggregateSource.EventStore.Tests.csproj</Value>
     </MetricsExclusionList>
     <SolutionConfigured>True</SolutionConfigured>
   </Settings>

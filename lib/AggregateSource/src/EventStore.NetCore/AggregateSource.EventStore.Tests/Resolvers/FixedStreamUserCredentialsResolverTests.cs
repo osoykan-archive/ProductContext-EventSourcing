@@ -1,8 +1,5 @@
 ﻿using System;
 
-using AggregateSource.EventStore.NetCore;
-using AggregateSource.EventStore.NetCore.Resolvers;
-
 using EventStore.ClientAPI.SystemData;
 
 using NUnit.Framework;
@@ -12,15 +9,16 @@ namespace AggregateSource.EventStore.Resolvers
     [TestFixture]
     public class FixedStreamUserCredentialsResolverTests
     {
+        private UserCredentials _credentials;
+
+        private FixedStreamUserCredentialsResolver _sut;
+
         [SetUp]
         public void SetUp()
         {
             _credentials = new UserCredentials("admin", "changeit");
             _sut = new FixedStreamUserCredentialsResolver(_credentials);
         }
-
-        private FixedStreamUserCredentialsResolver _sut;
-        private UserCredentials _credentials;
 
         [Test]
         public void FixedUserCredentialsCanNotBeNull()

@@ -1,5 +1,3 @@
-using AggregateSource.EventStore.NetCore;
-
 using EventStore.ClientAPI.SystemData;
 
 namespace AggregateSource.EventStore.Stubs

@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\AggregateSource\AggregateSource.csproj" />
-    <ProjectReference Include="..\AggregateSource.EventStore.NetCore\AggregateSource.EventStore.csproj" />
+    <ProjectReference Include="..\AggregateSource.EventStore\AggregateSource.EventStore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

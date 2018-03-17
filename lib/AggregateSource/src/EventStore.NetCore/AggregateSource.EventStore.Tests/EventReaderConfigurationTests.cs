@@ -1,7 +1,6 @@
 ﻿using System;
 
 using AggregateSource.EventStore.Builders;
-using AggregateSource.EventStore.NetCore;
 using AggregateSource.EventStore.Stubs;
 
 using NUnit.Framework;
@@ -11,13 +10,13 @@ namespace AggregateSource.EventStore
     [TestFixture]
     public class EventReaderConfigurationTests
     {
+        private EventReaderConfigurationBuilder _sutBuilder;
+
         [SetUp]
         public void SetUp()
         {
             _sutBuilder = EventReaderConfigurationBuilder.Default;
         }
-
-        private EventReaderConfigurationBuilder _sutBuilder;
 
         [Test]
         public void DeserializerCannotBeNull()

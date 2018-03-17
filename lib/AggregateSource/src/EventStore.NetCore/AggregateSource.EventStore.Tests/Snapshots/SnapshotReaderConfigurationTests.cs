@@ -10,13 +10,13 @@ namespace AggregateSource.EventStore.Snapshots
     [TestFixture]
     public class SnapshotReaderConfigurationTests
     {
+        private SnapshotReaderConfigurationBuilder _sutBuilder;
+
         [SetUp]
         public void SetUp()
         {
             _sutBuilder = SnapshotReaderConfigurationBuilder.Default;
         }
-
-        private SnapshotReaderConfigurationBuilder _sutBuilder;
 
         [Test]
         public void DeserializerCannotBeNull()

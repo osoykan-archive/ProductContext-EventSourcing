@@ -83,7 +83,10 @@ namespace ProductContext.Domain.Products
         public void AddVariant(string contentId, string variantId, string barcode, string variantTypeValueId)
         {
             ProductContent content = Contents.FirstOrDefault(x => x.ProductContentId == contentId);
-            if (content == null) { throw new InvalidOperationException("Content not found for Variant creation."); }
+            if (content == null)
+            {
+                throw new InvalidOperationException("Content not found for Variant creation");
+            }
 
             if (Variants.Any(x => x.ProductVariantId == variantId)) { return; }
             if (Variants.Any(x => x.Barcode == barcode)) { return; }

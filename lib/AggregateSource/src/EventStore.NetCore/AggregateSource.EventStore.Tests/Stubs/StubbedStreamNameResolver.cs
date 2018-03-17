@@ -1,5 +1,3 @@
-using AggregateSource.EventStore.NetCore;
-
 namespace AggregateSource.EventStore.Stubs
 {
     public class StubbedStreamNameResolver : IStreamNameResolver

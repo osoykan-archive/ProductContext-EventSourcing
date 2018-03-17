@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
-using AggregateSource.EventStore.NetCore;
-
 using EventStore.ClientAPI;
 
 namespace AggregateSource.EventStore.Stubs
@@ -15,6 +10,6 @@ namespace AggregateSource.EventStore.Stubs
         {
         }
 
-        public IEnumerable<object> Deserialize(ResolvedEvent resolvedEvent) => Enumerable.Empty<object>();
+        public object Deserialize(ResolvedEvent resolvedEvent) => new object();
     }
 }

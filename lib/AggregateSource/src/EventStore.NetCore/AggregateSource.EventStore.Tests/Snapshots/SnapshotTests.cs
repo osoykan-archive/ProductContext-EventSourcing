@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 
 using AggregateSource.EventStore.Builders;
-using AggregateSource.EventStore.NetCore.Snapshots;
 
 using NUnit.Framework;
 
@@ -10,12 +9,6 @@ namespace AggregateSource.EventStore.Snapshots
     [TestFixture]
     public class SnapshotTests
     {
-        [SetUp]
-        public void SetUp()
-        {
-            _sutBuilder = SnapshotBuilder.Default;
-        }
-
         private SnapshotBuilder _sutBuilder;
 
         private static IEnumerable<object> StateObjects
@@ -25,6 +18,12 @@ namespace AggregateSource.EventStore.Snapshots
                 yield return null;
                 yield return new object();
             }
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            _sutBuilder = SnapshotBuilder.Default;
         }
 
         private Snapshot CreateSut() => _sutBuilder.Build();
@@ -106,7 +105,8 @@ namespace AggregateSource.EventStore.Snapshots
         [Test]
         [Combinatorial]
         public void UsingConstructorReturnsInstanceWithExpectedProperties(
-            [Values(int.MinValue, -1, 0, 1, int.MaxValue)] int version,
+            [Values(int.MinValue, -1, 0, 1, int.MaxValue)]
+            int version,
             [ValueSource("StateObjects")] object state)
         {
             var sut = _sutBuilder.WithVersion(version).WithState(state).Build();

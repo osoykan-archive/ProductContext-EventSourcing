@@ -1,8 +1,5 @@
 using System;
 
-using AggregateSource.EventStore.NetCore;
-using AggregateSource.EventStore.NetCore.Resolvers;
-
 using NUnit.Framework;
 
 namespace AggregateSource.EventStore.Resolvers
@@ -10,13 +7,13 @@ namespace AggregateSource.EventStore.Resolvers
     [TestFixture]
     public class PassThroughStreamNameResolverTests
     {
+        private PassThroughStreamNameResolver _sut;
+
         [SetUp]
         public void SetUp()
         {
             _sut = new PassThroughStreamNameResolver();
         }
-
-        private PassThroughStreamNameResolver _sut;
 
         [Test]
         public void IsStreamNameResolver()
