@@ -16,7 +16,6 @@ namespace ProductContext.Framework
     {
         private static readonly ILog Log = LogProvider.For<ProjectionManager<TConnection>>();
         private readonly ICheckpointStore _checkpointStore;
-
         private readonly IEventStoreConnection _connection;
         private readonly Func<TConnection> _getConnection;
         private readonly int _maxLiveQueueSize;

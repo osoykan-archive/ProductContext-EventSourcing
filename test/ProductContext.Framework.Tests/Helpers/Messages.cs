@@ -2,15 +2,13 @@ using System;
 
 namespace ProductContext.Framework.Tests.Helpers
 {
-    public class DeferredExecutionTestMessage : Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Message
+    public class DeferredExecutionTestMessage : Message
     {
         private readonly Action _action;
 
         public DeferredExecutionTestMessage(Action action)
         {
-            if (action == null)
-                throw new ArgumentNullException("action");
-            _action = action;
+            _action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
         public void Execute()
@@ -19,15 +17,13 @@ namespace ProductContext.Framework.Tests.Helpers
         }
     }
 
-    public class ExecutableTestMessage : Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Message
+    public class ExecutableTestMessage : Message
     {
         private readonly Action _action;
 
         public ExecutableTestMessage(Action action)
         {
-            if (action == null)
-                throw new ArgumentNullException("action");
-            _action = action;
+            _action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
         public void Execute()
