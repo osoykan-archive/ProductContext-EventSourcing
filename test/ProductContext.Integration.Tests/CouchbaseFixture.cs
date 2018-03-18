@@ -1,29 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
+
+using Ductus.FluentDocker.Builders;
+using Ductus.FluentDocker.Extensions;
+using Ductus.FluentDocker.Services;
 
 namespace ProductContext.Integration.Tests
 {
     public class CouchbaseFixture : IDisposable
     {
-        private readonly IDisposable _docker;
+        private readonly ICompositeService _image;
+        private readonly IContainerService _runningImage;
 
         public CouchbaseFixture()
         {
-            _docker = DockerHelper.StartContainerAsync("couchbase:latest", new List<int> { 8091, 8092, 8093, 8094 }).GetAwaiter().GetResult();
+            string resourcePath = $"{GetType().Assembly.GetName().Name}/{GetType().Assembly.GetName().Name}.couchbaseintegration/configure-node.txt";
 
-            //var configuration = new ClientConfiguration();
-            //configuration.Servers.Add(new Uri("http://localhost:8091"));
-            //configuration.SetAuthenticator(new PasswordAuthenticator("Administrator", "123456"));
+            _image = new Builder().DefineImage("osoykan/couchbase")
+                                  .From("couchbase:latest")
+                                  .Maintainer("oguzhansoykan@gmail.com")
+                                  .ExposePorts(8091, 8092, 8093, 8094, 11210)
+                                  .Add($"emb:{resourcePath}", "/opt/couchbase/configure-node.sh")
+                                  .Command("/opt/couchbase/configure-node.sh").Builder()
+                                  .Build().Start();
 
-            //ClusterHelper.Initialize(configuration);
-            //_cluster = ClusterHelper.Get();
-            //_manager = _cluster.CreateManager("Administrator", "123456");
-            //_manager.CreateBucket("ProductContext", 200, BucketTypeEnum.Memcached, ReplicaNumber.Zero, AuthType.None);
+            _runningImage = new Builder().UseContainer()
+                                         .UseImage("osoykan/couchbase")
+                                         .ExposePort(8091, 8091)
+                                         .ExposePort(8092, 8092)
+                                         .ExposePort(8093, 8093)
+                                         .ExposePort(8094, 8094)
+                                         .ExposePort(11210, 11210)
+                                         .Build().Start();
+
+            _runningImage.WaitForRunning();
         }
 
         public void Dispose()
         {
-            _docker?.Dispose();
+            _image?.Dispose();
+            _runningImage?.Dispose();
         }
     }
 }

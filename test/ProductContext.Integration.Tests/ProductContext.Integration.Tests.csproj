@@ -5,17 +5,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="couchbaseintegration\configure-node.sh" />
+    <None Remove="couchbaseintegration\configure-node.txt" />
     <None Remove="couchbaseintegration\Dockerfile" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="couchbaseintegration\configure-node.sh" />
+    <EmbeddedResource Include="couchbaseintegration\configure-node.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="couchbaseintegration\Dockerfile" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Docker.DotNet" Version="3.125.1" />
+    <PackageReference Include="Ductus.FluentDocker" Version="2.2.8" />
     <PackageReference Include="xunit" Version="2.3.1" />
   </ItemGroup>
 
