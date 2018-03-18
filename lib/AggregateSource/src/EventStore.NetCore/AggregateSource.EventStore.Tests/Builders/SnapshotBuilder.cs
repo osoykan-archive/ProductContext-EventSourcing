@@ -1,6 +1,6 @@
 ﻿using AggregateSource.EventStore.Snapshots;
 
-namespace AggregateSource.EventStore.Builders
+namespace AggregateSource.EventStore.Tests.Builders
 {
     public class SnapshotBuilder
     {

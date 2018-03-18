@@ -1,7 +1,7 @@
 ﻿using AggregateSource.EventStore.Snapshots;
-using AggregateSource.EventStore.Stubs;
+using AggregateSource.EventStore.Tests.Stubs;
 
-namespace AggregateSource.EventStore.Builders
+namespace AggregateSource.EventStore.Tests.Builders
 {
     public class SnapshotReaderConfigurationBuilder
     {

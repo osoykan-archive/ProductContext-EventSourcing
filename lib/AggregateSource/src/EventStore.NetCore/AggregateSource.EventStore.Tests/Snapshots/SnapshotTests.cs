@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 
-using AggregateSource.EventStore.Builders;
+using AggregateSource.EventStore.Snapshots;
+using AggregateSource.EventStore.Tests.Builders;
 
 using NUnit.Framework;
 
-namespace AggregateSource.EventStore.Snapshots
+namespace AggregateSource.EventStore.Tests.Snapshots
 {
     [TestFixture]
     public class SnapshotTests

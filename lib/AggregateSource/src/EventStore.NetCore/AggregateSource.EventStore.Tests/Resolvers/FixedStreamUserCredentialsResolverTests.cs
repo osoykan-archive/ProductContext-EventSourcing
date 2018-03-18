@@ -1,10 +1,12 @@
 ﻿using System;
 
+using AggregateSource.EventStore.Resolvers;
+
 using EventStore.ClientAPI.SystemData;
 
 using NUnit.Framework;
 
-namespace AggregateSource.EventStore.Resolvers
+namespace AggregateSource.EventStore.Tests.Resolvers
 {
     [TestFixture]
     public class FixedStreamUserCredentialsResolverTests

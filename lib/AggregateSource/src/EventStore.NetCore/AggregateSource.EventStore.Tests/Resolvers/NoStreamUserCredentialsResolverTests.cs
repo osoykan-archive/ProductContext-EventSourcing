@@ -1,8 +1,10 @@
 ﻿using System;
 
+using AggregateSource.EventStore.Resolvers;
+
 using NUnit.Framework;
 
-namespace AggregateSource.EventStore.Resolvers
+namespace AggregateSource.EventStore.Tests.Resolvers
 {
     [TestFixture]
     public class NoStreamUserCredentialsResolverTests

@@ -1,4 +1,4 @@
-namespace AggregateSource.EventStore.Stubs
+namespace AggregateSource.EventStore.Tests.Stubs
 {
     public class StubbedStreamNameResolver : IStreamNameResolver
     {

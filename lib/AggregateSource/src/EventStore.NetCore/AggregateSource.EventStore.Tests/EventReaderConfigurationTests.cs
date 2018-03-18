@@ -1,11 +1,11 @@
 ﻿using System;
 
-using AggregateSource.EventStore.Builders;
-using AggregateSource.EventStore.Stubs;
+using AggregateSource.EventStore.Tests.Builders;
+using AggregateSource.EventStore.Tests.Stubs;
 
 using NUnit.Framework;
 
-namespace AggregateSource.EventStore
+namespace AggregateSource.EventStore.Tests
 {
     [TestFixture]
     public class EventReaderConfigurationTests

@@ -2,7 +2,7 @@ using AggregateSource.EventStore.Snapshots;
 
 using EventStore.ClientAPI;
 
-namespace AggregateSource.EventStore.Stubs
+namespace AggregateSource.EventStore.Tests.Stubs
 {
     public class StubbedSnapshotDeserializer : ISnapshotDeserializer
     {
