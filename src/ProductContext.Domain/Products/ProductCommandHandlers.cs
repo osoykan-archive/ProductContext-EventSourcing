@@ -38,7 +38,7 @@ namespace ProductContext.Domain.Products
         public Task HandleAsync(Commands.V1.CreateProduct command) =>
             Add(async repository =>
             {
-                string productId = Guid.NewGuid().ToString();
+                string productId = GetId(Guid.NewGuid().ToString());
 
                 Product product = Product.Create(
                     productId,

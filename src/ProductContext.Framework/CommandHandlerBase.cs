@@ -26,11 +26,13 @@ namespace ProductContext.Framework
             _getStreamName = getStreamName;
         }
 
+        protected string GetId(string from) => _getStreamName(typeof(T), from);
+
         protected async Task Add(Func<AsyncRepository<T>, Task> when)
         {
             await when(_repository);
 
-            await AppendToStream(null);
+            await AppendToStream();
         }
 
         protected async Task Update(string id, Func<T, Task> when)
@@ -41,10 +43,10 @@ namespace ProductContext.Framework
 
             await when(loadedAggregate).ConfigureAwait(false);
 
-            await AppendToStream(stream);
+            await AppendToStream();
         }
 
-        private async Task AppendToStream(string stream)
+        private async Task AppendToStream()
         {
             foreach (Aggregate aggregate in _repository.UnitOfWork.GetChanges())
             {
@@ -59,20 +61,15 @@ namespace ProductContext.Framework
                                                        timeStamp = _getDateTime()
                                                    }))
                                                    )).ToArray();
-                if (string.IsNullOrEmpty(stream))
-                { 
-                    stream = _getStreamName(typeof(T), aggregate.Identifier);
-                }
-
                 try
                 {
-                    await _repository.Connection.AppendToStreamAsync(stream, aggregate.ExpectedVersion, changes);
+                    await _repository.Connection.AppendToStreamAsync(aggregate.Identifier, aggregate.ExpectedVersion, changes);
                 }
                 catch (WrongExpectedVersionException)
                 {
-                    StreamEventsSlice page = await _repository.Connection.ReadStreamEventsBackwardAsync(stream, -1, 1, false);
+                    StreamEventsSlice page = await _repository.Connection.ReadStreamEventsBackwardAsync(aggregate.Identifier, -1, 1, false);
                     throw new WrongExpectedStreamVersionException(
-                        $"Failed to append stream {stream} with expected version {aggregate.ExpectedVersion}. " +
+                        $"Failed to append stream {aggregate.Identifier} with expected version {aggregate.ExpectedVersion}. " +
                         $"{(page.Status == SliceReadStatus.StreamNotFound ? "Stream not found!" : $"Current Version: {page.LastEventNumber}")}");
                 }
             }
