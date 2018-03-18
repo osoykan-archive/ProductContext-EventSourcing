@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Couchbase;
-using Couchbase.Management;
-
 namespace ProductContext.Integration.Tests
 {
     public class CouchbaseFixture : IDisposable
     {
-        private readonly Cluster _cluster;
         private readonly IDisposable _docker;
-        private readonly IClusterManager _manager;
 
         public CouchbaseFixture()
         {
@@ -28,8 +23,6 @@ namespace ProductContext.Integration.Tests
 
         public void Dispose()
         {
-            _cluster.Dispose();
-            _manager.Dispose();
             _docker?.Dispose();
         }
     }
