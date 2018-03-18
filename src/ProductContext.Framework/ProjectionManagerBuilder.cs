@@ -71,6 +71,11 @@ namespace ProductContext.Framework
     {
         private Type _projectionType;
 
+        public static ProjectorDefiner For<TProjeciton>()
+        {
+            return new ProjectorDefiner().From<TProjeciton>();
+        }
+
         public Projector<TConnection> Build<TConnection>()
         {
             var projector = (Projection<TConnection>)Activator.CreateInstance(_projectionType);
@@ -79,7 +84,7 @@ namespace ProductContext.Framework
 
         public string GetProjectionName() => _projectionType.Name;
 
-        public ProjectorDefiner From<TProjection>()
+        private ProjectorDefiner From<TProjection>()
         {
             _projectionType = typeof(TProjection);
             return this;

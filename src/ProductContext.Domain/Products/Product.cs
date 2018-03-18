@@ -67,8 +67,15 @@ namespace ProductContext.Domain.Products
 
         public void AddContent(string contentId, string description, string variantTypeValueId)
         {
-            if (Contents.Any(x => x.VariantValue.VariantTypeValueId == (VariantTypeValueId)variantTypeValueId)) { return; }
-            if (Contents.Any(x => x.ProductContentId == contentId)) { return; }
+            if (Contents.Any(x => x.VariantValue.VariantTypeValueId == (VariantTypeValueId)variantTypeValueId))
+            {
+                return;
+            }
+
+            if (Contents.Any(x => x.ProductContentId == contentId))
+            {
+                return;
+            }
 
             ApplyChange(
                 new Events.V1.ContentAddedToProduct(ProductId.Id,

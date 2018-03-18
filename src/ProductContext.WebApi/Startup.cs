@@ -112,8 +112,8 @@ namespace ProductContext.WebApi
                                           .Deserializer(new DefaultEventDeserializer())
                                           .CheckpointStore(new CouchbaseCheckpointStore(getBucket))
                                           .Projections(
-                                              new ProjectorDefiner().From<ProductProjection>()
-                ).Activate(getBucket);
+                                                ProjectorDefiner.For<ProductProjection>()
+                                         ).Activate(getBucket);
         }
     }
 }

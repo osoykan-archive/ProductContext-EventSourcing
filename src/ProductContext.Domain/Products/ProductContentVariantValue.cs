@@ -15,11 +15,11 @@ namespace ProductContext.Domain.Products
             VariantType = variantType;
         }
 
-        public ProductId ProductId { get; }
+        public ProductId ProductId { get; private set; }
 
-        public VariantTypeValueId VariantTypeValueId { get; }
+        public VariantTypeValueId VariantTypeValueId { get; private set; }
 
-        public Enums.VariantType VariantType { get; }
+        public Enums.VariantType VariantType { get; private set; }
 
         protected override IEnumerable<object> GetAllAttributesToBeUsedForEquality()
         {
