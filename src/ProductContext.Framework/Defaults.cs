@@ -8,7 +8,7 @@ using Couchbase.Core;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 
-namespace ProductContext.WebApi
+namespace ProductContext.Framework
 {
     public static class Defaults
     {

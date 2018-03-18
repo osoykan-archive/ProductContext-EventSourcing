@@ -48,6 +48,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AggregateSource.EventStore"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AggregateSource.EventStore.Tests", "lib\AggregateSource\src\EventStore.NetCore\AggregateSource.EventStore.Tests\AggregateSource.EventStore.Tests.csproj", "{3AE84F0C-54B9-41DB-9D0C-FC04194C1CDE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductContext.Integration.Tests", "test\ProductContext.Integration.Tests\ProductContext.Integration.Tests.csproj", "{8AFCF9CC-C142-4262-812D-D1077F854030}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		lib\Value\Value\Value.Shared.projitems*{44709b35-26e8-4588-a87a-1727cdb11255}*SharedItemsImports = 13
@@ -101,6 +103,10 @@ Global
 		{3AE84F0C-54B9-41DB-9D0C-FC04194C1CDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3AE84F0C-54B9-41DB-9D0C-FC04194C1CDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3AE84F0C-54B9-41DB-9D0C-FC04194C1CDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AFCF9CC-C142-4262-812D-D1077F854030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AFCF9CC-C142-4262-812D-D1077F854030}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AFCF9CC-C142-4262-812D-D1077F854030}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AFCF9CC-C142-4262-812D-D1077F854030}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,6 +126,7 @@ Global
 		{A32179BA-D904-4615-A1FE-E33415430DE4} = {A13A7111-BAFA-44EA-9EA5-6BF0BFBF63C8}
 		{3CDF42A6-223E-4B21-8A22-154886A55C92} = {5C3284C0-B14B-4482-899C-C44D14AC9E2D}
 		{3AE84F0C-54B9-41DB-9D0C-FC04194C1CDE} = {5C3284C0-B14B-4482-899C-C44D14AC9E2D}
+		{8AFCF9CC-C142-4262-812D-D1077F854030} = {A13A7111-BAFA-44EA-9EA5-6BF0BFBF63C8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EE659F06-82B7-44A7-8333-DF99BB564321}
