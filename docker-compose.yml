@@ -12,7 +12,7 @@ services:
         image: "osoykan/couchbase"
         ports:
             - "8091-8094:8091-8094"
-           #- "11210:11210"
+            - "11210:11210"
         environment:
             - MEMORY_QUOTA=256
             - INDEX_MEMORY_QUOTA=256

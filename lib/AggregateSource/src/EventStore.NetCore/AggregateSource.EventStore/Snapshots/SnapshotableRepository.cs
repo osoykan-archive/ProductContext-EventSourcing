@@ -2,6 +2,7 @@
 using System.Linq;
 
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.SystemData;
 
 namespace AggregateSource.EventStore.Snapshots
 {
@@ -34,31 +35,11 @@ namespace AggregateSource.EventStore.Snapshots
             IEventStoreConnection connection, EventReaderConfiguration configuration,
             ISnapshotReader reader)
         {
-            if (rootFactory == null)
-            {
-                throw new ArgumentNullException(nameof(rootFactory));
-            }
-            if (unitOfWork == null)
-            {
-                throw new ArgumentNullException(nameof(unitOfWork));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-            if (reader == null)
-            {
-                throw new ArgumentNullException(nameof(reader));
-            }
-            _rootFactory = rootFactory;
-            _unitOfWork = unitOfWork;
-            _connection = connection;
-            _configuration = configuration;
-            _reader = reader;
+            _rootFactory = rootFactory ?? throw new ArgumentNullException(nameof(rootFactory));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _reader = reader ?? throw new ArgumentNullException(nameof(reader));
         }
 
         /// <summary>
@@ -84,19 +65,18 @@ namespace AggregateSource.EventStore.Snapshots
         /// <returns>The found <typeparamref name="TAggregateRoot" />, or empty if not found.</returns>
         public Optional<TAggregateRoot> GetOptional(string identifier)
         {
-            Aggregate aggregate;
-            if (_unitOfWork.TryGet(identifier, out aggregate))
+            if (_unitOfWork.TryGet(identifier, out Aggregate aggregate))
             {
                 return new Optional<TAggregateRoot>((TAggregateRoot)aggregate.Root);
             }
-            var snapshot = _reader.ReadOptional(identifier);
+            Optional<Snapshot> snapshot = _reader.ReadOptional(identifier);
             var version = 1;
             if (snapshot.HasValue)
             {
                 version = snapshot.Value.Version + 1;
             }
-            var streamUserCredentials = _configuration.StreamUserCredentialsResolver.Resolve(identifier);
-            var streamName = _configuration.StreamNameResolver.Resolve(identifier);
+            UserCredentials streamUserCredentials = _configuration.StreamUserCredentialsResolver.Resolve(identifier);
+            string streamName = _configuration.StreamNameResolver.Resolve(identifier);
             StreamEventsSlice slice = _connection.
                 ReadStreamEventsForwardAsync(
                     streamName, version, _configuration.SliceSize, false, streamUserCredentials).

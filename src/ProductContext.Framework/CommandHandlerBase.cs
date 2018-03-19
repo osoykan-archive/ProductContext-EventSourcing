@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using AggregateSource;
 using AggregateSource.EventStore;
+using AggregateSource.EventStore.Snapshots;
 
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Exceptions;
@@ -13,17 +14,26 @@ using Newtonsoft.Json;
 
 namespace ProductContext.Framework
 {
-    public class CommandHandlerBase<T> where T : AggregateRootEntity
+    public class CommandHandlerBase<T> where T : AggregateRootEntity, ISnapshotable
     {
         private readonly Func<DateTime> _getDateTime;
+        private readonly GetSnapshotStreamName _getSnapshotStreamName;
         private readonly GetStreamName _getStreamName;
         private readonly AsyncRepository<T> _repository;
+        private readonly AsyncSnapshotableRepository<T> _snapshotableRepository;
 
-        public CommandHandlerBase(GetStreamName getStreamName, AsyncRepository<T> repository, Func<DateTime> getDateTime)
+        public CommandHandlerBase(
+            GetStreamName getStreamName,
+            GetSnapshotStreamName getSnapshotStreamName,
+            AsyncRepository<T> repository,
+            AsyncSnapshotableRepository<T> snapshotableRepository,
+            Func<DateTime> getDateTime)
         {
             _repository = repository;
             _getDateTime = getDateTime;
             _getStreamName = getStreamName;
+            _getSnapshotStreamName = getSnapshotStreamName;
+            _snapshotableRepository = snapshotableRepository;
         }
 
         protected string GetId(string from) => _getStreamName(typeof(T), from);
@@ -46,6 +56,17 @@ namespace ProductContext.Framework
             await AppendToStream();
         }
 
+        protected async Task UpdateUsingSnapshot(string id, Func<T, Task> when)
+        {
+            string stream = _getSnapshotStreamName(typeof(T), id);
+
+            T snapshot = await _snapshotableRepository.GetAsync(stream);
+
+            await when(snapshot);
+
+            await AppendToStream();
+        }
+
         private async Task AppendToStream()
         {
             foreach (Aggregate aggregate in _repository.UnitOfWork.GetChanges())
@@ -56,9 +77,11 @@ namespace ProductContext.Framework
                                                    @event.GetType().TypeQualifiedName(),
                                                    true,
                                                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(@event)),
-                                                   Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                                                   Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new EventMetadata()
                                                    {
-                                                       timeStamp = _getDateTime()
+                                                       TimeStamp = _getDateTime(),
+                                                       AggregateType = typeof(T).Name,
+                                                       AggregateAssemblyQualifiedName = typeof(T).AssemblyQualifiedName
                                                    }))
                                                    )).ToArray();
                 try

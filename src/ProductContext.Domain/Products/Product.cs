@@ -8,7 +8,7 @@ using ProductContext.Domain.Contracts;
 
 namespace ProductContext.Domain.Products
 {
-    public class Product : AggregateRootEntity
+    public class Product : AggregateRootEntity, ISnapshotable
     {
         public static readonly Func<Product> Factory = () => new Product();
 
@@ -30,6 +30,27 @@ namespace ProductContext.Domain.Products
         public List<ProductContent> Contents { get; private set; }
 
         public List<ProductVariant> Variants { get; private set; }
+
+        public void RestoreSnapshot(object state)
+        {
+            var snapshot = (ProductSnapshot)state;
+
+            Variants = snapshot.Variants;
+            Contents = snapshot.Contents;
+            Code = snapshot.Code;
+            BrandId = snapshot.BrandId;
+            ProductId = snapshot.ProductId;
+        }
+
+        public object TakeSnapshot() => new ProductSnapshot
+        {
+            BrandId = BrandId,
+            Variants = Variants,
+            ProductId = ProductId,
+            Contents = Contents,
+            BusinessUnitId = BusinessUnitId,
+            Code = Code
+        };
 
         public static Product Create(string id, int brandId, string code, int businessUnitId)
         {

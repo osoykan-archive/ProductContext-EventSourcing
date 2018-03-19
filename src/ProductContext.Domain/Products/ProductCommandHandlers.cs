@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using AggregateSource.EventStore;
+using AggregateSource.EventStore.Snapshots;
 
 using ProductContext.Domain.Contracts;
 using ProductContext.Framework;
@@ -16,8 +17,10 @@ namespace ProductContext.Domain.Products
     {
         public ProductCommandHandlers(
             GetStreamName getStreamName,
+            GetSnapshotStreamName getSnapshotStreamName,
             AsyncRepository<Product> repository,
-            Func<DateTime> getDateTime) : base(getStreamName, repository, getDateTime)
+            AsyncSnapshotableRepository<Product> snapshotableRepository,
+            Func<DateTime> getDateTime) : base(getStreamName, getSnapshotStreamName, repository, snapshotableRepository, getDateTime)
         {
         }
 

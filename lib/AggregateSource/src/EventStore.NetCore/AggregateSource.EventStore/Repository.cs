@@ -26,26 +26,10 @@ namespace AggregateSource.EventStore
         public Repository(Func<TAggregateRoot> rootFactory, UnitOfWork unitOfWork, IEventStoreConnection connection,
             EventReaderConfiguration configuration)
         {
-            if (rootFactory == null)
-            {
-                throw new ArgumentNullException(nameof(rootFactory));
-            }
-            if (unitOfWork == null)
-            {
-                throw new ArgumentNullException(nameof(unitOfWork));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-            RootFactory = rootFactory;
-            UnitOfWork = unitOfWork;
-            Connection = connection;
-            Configuration = configuration;
+            RootFactory = rootFactory ?? throw new ArgumentNullException(nameof(rootFactory));
+            UnitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            Connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -103,8 +87,7 @@ namespace AggregateSource.EventStore
         /// <returns>The found <typeparamref name="TAggregateRoot" />, or empty if not found.</returns>
         public Optional<TAggregateRoot> GetOptional(string identifier)
         {
-            Aggregate aggregate;
-            if (UnitOfWork.TryGet(identifier, out aggregate))
+            if (UnitOfWork.TryGet(identifier, out Aggregate aggregate))
             {
                 return new Optional<TAggregateRoot>((TAggregateRoot)aggregate.Root);
             }

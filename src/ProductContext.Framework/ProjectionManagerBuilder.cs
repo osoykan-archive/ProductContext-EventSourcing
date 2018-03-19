@@ -13,12 +13,12 @@ namespace ProductContext.Framework
     {
         public static readonly ProjectionManagerBuilder With = new ProjectionManagerBuilder();
         private ICheckpointStore _checkpointStore;
-
         private IEventStoreConnection _connection;
         private IEventDeserializer _deserializer;
         private int? _maxLiveQueueSize;
         private ProjectorDefiner[] _projections;
         private int? _readBatchSize;
+        private ISnapshotter[] _snapshotters;
 
         public ProjectionManagerBuilder Connection(IEventStoreConnection connection)
         {
@@ -50,8 +50,14 @@ namespace ProductContext.Framework
             return this;
         }
 
+        public ProjectionManagerBuilder Snaphotter(params ISnapshotter[] snapshotters)
+        {
+            _snapshotters = snapshotters;
+            return this;
+        }
+
         public ProjectionManager<TConnection> Build<TConnection>(Func<TConnection> connection) =>
-            new ProjectionManager<TConnection>(_connection, _deserializer, connection, _checkpointStore, _projections, 10000, 500);
+            new ProjectionManager<TConnection>(_connection, _deserializer, connection, _checkpointStore, _projections, _snapshotters, _maxLiveQueueSize, _readBatchSize);
 
         public async Task<ProjectionManager<TConnection>> Activate<TConnection>(Func<TConnection> getConnection)
         {
@@ -71,10 +77,7 @@ namespace ProductContext.Framework
     {
         private Type _projectionType;
 
-        public static ProjectorDefiner For<TProjeciton>()
-        {
-            return new ProjectorDefiner().From<TProjeciton>();
-        }
+        public static ProjectorDefiner For<TProjeciton>() => new ProjectorDefiner().From<TProjeciton>();
 
         public Projector<TConnection> Build<TConnection>()
         {

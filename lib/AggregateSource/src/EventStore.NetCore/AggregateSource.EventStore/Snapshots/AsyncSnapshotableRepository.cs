@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.SystemData;
 
 namespace AggregateSource.EventStore.Snapshots
 {
@@ -51,7 +52,7 @@ namespace AggregateSource.EventStore.Snapshots
         /// <exception cref="AggregateNotFoundException">Thrown when an aggregate is not found.</exception>
         public async Task<TAggregateRoot> GetAsync(string identifier)
         {
-            var result = await GetOptionalAsync(identifier);
+            Optional<TAggregateRoot> result = await GetOptionalAsync(identifier);
             if (!result.HasValue)
             {
                 throw new AggregateNotFoundException(identifier, typeof(TAggregateRoot));
@@ -72,16 +73,16 @@ namespace AggregateSource.EventStore.Snapshots
                 return new Optional<TAggregateRoot>((TAggregateRoot)aggregate.Root);
             }
 
-            var snapshot = await _reader.ReadOptionalAsync(identifier);
+            Optional<Snapshot> snapshot = await _reader.ReadOptionalAsync(identifier);
             var version = 1;
             if (snapshot.HasValue)
             {
                 version = snapshot.Value.Version + 1;
             }
 
-            var streamUserCredentials = _configuration.StreamUserCredentialsResolver.Resolve(identifier);
-            var streamName = _configuration.StreamNameResolver.Resolve(identifier);
-            var slice =
+            UserCredentials streamUserCredentials = _configuration.StreamUserCredentialsResolver.Resolve(identifier);
+            string streamName = _configuration.StreamNameResolver.Resolve(identifier);
+            StreamEventsSlice slice =
                 await
                     _connection.ReadStreamEventsForwardAsync(streamName, version, _configuration.SliceSize, false,
                         streamUserCredentials);
@@ -90,7 +91,7 @@ namespace AggregateSource.EventStore.Snapshots
                 return Optional<TAggregateRoot>.Empty;
             }
 
-            var root = _rootFactory();
+            TAggregateRoot root = _rootFactory();
             if (snapshot.HasValue)
             {
                 root.RestoreSnapshot(snapshot.Value.State);

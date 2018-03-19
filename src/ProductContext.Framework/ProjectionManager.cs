@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using AggregateSource.EventStore;
 
 using EventStore.ClientAPI;
+
+using Newtonsoft.Json;
 
 using ProductContext.Framework.Logging;
 
@@ -22,13 +25,14 @@ namespace ProductContext.Framework
         private readonly ProjectorDefiner[] _projectorDefiners;
         private readonly int _readBatchSize;
         private readonly IEventDeserializer _serializer;
+        private readonly ISnapshotter[] _snapshotters;
 
-        internal ProjectionManager(
-            IEventStoreConnection connection,
+        internal ProjectionManager(IEventStoreConnection connection,
             IEventDeserializer serializer,
             Func<TConnection> getConnection,
             ICheckpointStore checkpointStore,
             ProjectorDefiner[] projections,
+            ISnapshotter[] snapshotters,
             int? maxLiveQueueSize,
             int? readBatchSize)
         {
@@ -36,6 +40,7 @@ namespace ProductContext.Framework
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _getConnection = getConnection;
             _projectorDefiners = projections;
+            _snapshotters = snapshotters;
             _checkpointStore = checkpointStore;
             _maxLiveQueueSize = maxLiveQueueSize ?? 10000;
             _readBatchSize = readBatchSize ?? 500;
@@ -58,7 +63,7 @@ namespace ProductContext.Framework
             _connection.SubscribeToAllFrom(
                 lastCheckpoint,
                 settings,
-                EventAppeared(projector, projectionName, @event => _checkpointStore.SetLastCheckpoint(projectionName, @event.OriginalPosition)),
+                EventAppeared(projector, projectionName),
                 LiveProcessingStarted(projector, projectionName),
                 SubscriptionDropped(projector, projectionName));
         }
@@ -67,15 +72,11 @@ namespace ProductContext.Framework
 
         private Action<EventStoreCatchUpSubscription, ResolvedEvent> EventAppeared(
             Projector<TConnection> projection,
-            string projectionName,
-            Func<ResolvedEvent, Task> setCheckpointfunc
+            string projectionName
             ) => async (_, e) =>
-             {
+            {
                 // check system event
-                if (e.OriginalEvent.EventType.StartsWith("$"))
-                 {
-                     return;
-                 }
+                if (e.OriginalEvent.EventType.StartsWith("$")) { return; }
 
                 // get the configured clr type name for deserializing the event
                 //var eventType = _typeMapper.GetType(e.Event.EventType);
@@ -83,15 +84,22 @@ namespace ProductContext.Framework
                 // try to execute the projection
                 await projection.ProjectAsync(_getConnection(), ComposeEnvelope(_serializer.Deserialize(e), e.OriginalPosition.Value.CommitPosition));
 
-                 Log.Debug("{projection} projected {eventType}({eventId})", projectionName, e.Event.EventType, e.Event.EventId);
+                Log.Debug("{projection} projected {eventType}({eventId})", projectionName, e.Event.EventType, e.Event.EventId);
 
-                // store the current checkpoint
+                //**** Storing Checkpoint ****/
                 //1.Way
                 // await projection.ProjectAsync(_getConnection(), new SetProjectionPosition(e.OriginalPosition));
-
                 //2.Way
-                await setCheckpointfunc(e);
-             };
+                await _checkpointStore.SetLastCheckpoint(projectionName, e.OriginalPosition);
+
+                var metadata = JsonConvert.DeserializeObject<EventMetadata>(Encoding.UTF8.GetString(e.Event.Metadata));
+
+                ISnapshotter snapshotter = _snapshotters.FirstOrDefault(x => x.ShouldTakeSnapshot(Type.GetType(metadata.AggregateAssemblyQualifiedName)));
+                if (snapshotter!=null)
+                {
+                    await snapshotter.Take(e.OriginalStreamId);
+                }
+            };
 
         private Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> SubscriptionDropped(Projector<TConnection> projection, string projectionName)
             => (subscription, reason, ex) =>

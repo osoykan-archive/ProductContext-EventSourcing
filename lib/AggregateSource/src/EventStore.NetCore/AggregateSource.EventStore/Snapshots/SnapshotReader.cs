@@ -1,6 +1,7 @@
 ﻿using System;
 
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.SystemData;
 
 namespace AggregateSource.EventStore.Snapshots
 {
@@ -20,16 +21,8 @@ namespace AggregateSource.EventStore.Snapshots
         /// </exception>
         public SnapshotReader(IEventStoreConnection connection, SnapshotReaderConfiguration configuration)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-            Connection = connection;
-            Configuration = configuration;
+            Connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -62,9 +55,9 @@ namespace AggregateSource.EventStore.Snapshots
             {
                 throw new ArgumentNullException(nameof(identifier));
             }
-            var streamUserCredentials = Configuration.StreamUserCredentialsResolver.Resolve(identifier);
-            var streamName = Configuration.StreamNameResolver.Resolve(identifier);
-            var slice = Connection.
+            UserCredentials streamUserCredentials = Configuration.StreamUserCredentialsResolver.Resolve(identifier);
+            string streamName = Configuration.StreamNameResolver.Resolve(identifier);
+            StreamEventsSlice slice = Connection.
                 ReadStreamEventsBackwardAsync(
                     streamName, StreamPosition.End, 1, false, streamUserCredentials).
                 Result;

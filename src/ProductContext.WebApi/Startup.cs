@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AggregateSource;
 using AggregateSource.EventStore;
 using AggregateSource.EventStore.Resolvers;
+using AggregateSource.EventStore.Snapshots;
 
 using Couchbase.Core;
 
@@ -58,6 +59,7 @@ namespace ProductContext.WebApi
             {
                 var bus = new InMemoryBus("bus");
                 var defaultSerializer = new DefaultEventDeserializer();
+                var defaultSnapshotDeserializer = new DefaultSnapshotDeserializer();
                 var concurrentUnitOfWork = new ConcurrentUnitOfWork();
 
                 var productRepository = new AsyncRepository<Product>(
@@ -70,9 +72,21 @@ namespace ProductContext.WebApi
                         new PassThroughStreamNameResolver(),
                         new NoStreamUserCredentialsResolver()));
 
+                var productSnapshotableRepository = new AsyncSnapshotableRepository<Product>(
+                    Product.Factory,
+                    concurrentUnitOfWork,
+                    esConnection,
+                    new EventReaderConfiguration(new SliceSize(500), defaultSerializer, new PassThroughStreamNameResolver(), new NoStreamUserCredentialsResolver()),
+                    new AsyncSnapshotReader(esConnection, new SnapshotReaderConfiguration(defaultSnapshotDeserializer, new PassThroughStreamNameResolver(), new NoStreamUserCredentialsResolver())));
+
                 DateTime GetDatetime() => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
 
-                var productCommandHandlers = new ProductCommandHandlers((type, id) => $"{type.Name}-{id}", productRepository, GetDatetime);
+                var productCommandHandlers = new ProductCommandHandlers(
+                    (type, id) => $"{type.Name}-{id}",
+                    (type, id) => $"{type.Name}-{id}-Snapshot",
+                    productRepository,
+                    productSnapshotableRepository,
+                    GetDatetime);
                 bus.Subscribe<Commands.V1.CreateProduct>(productCommandHandlers);
                 bus.Subscribe<Commands.V1.AddVariantToProduct>(productCommandHandlers);
                 bus.Subscribe<Commands.V1.AddContentToProduct>(productCommandHandlers);
@@ -107,13 +121,28 @@ namespace ProductContext.WebApi
                 Configuration["Data:Couchbase:Password"],
                 Configuration["Data:Couchbase:Url"]);
 
+            var defaultSerializer = new DefaultEventDeserializer();
+            var concurrentUnitOfWork = new ConcurrentUnitOfWork();
+
+            var productRepository = new AsyncRepository<Product>(
+                Product.Factory,
+                concurrentUnitOfWork,
+                esConnection,
+                new EventReaderConfiguration(
+                    new SliceSize(500),
+                    defaultSerializer,
+                    new PassThroughStreamNameResolver(),
+                    new NoStreamUserCredentialsResolver()));
+
+
             await ProjectionManagerBuilder.With
                                           .Connection(esConnection)
                                           .Deserializer(new DefaultEventDeserializer())
                                           .CheckpointStore(new CouchbaseCheckpointStore(getBucket))
+                                          .Snaphotter(new EventStoreSnapshotter<Product>(productRepository))
                                           .Projections(
-                                                ProjectorDefiner.For<ProductProjection>()
-                                         ).Activate(getBucket);
+                                              ProjectorDefiner.For<ProductProjection>()
+                ).Activate(getBucket);
         }
     }
 }
