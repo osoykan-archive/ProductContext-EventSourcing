@@ -1,0 +1,7 @@
+{
+    "views": {
+        "by_productId": {
+            "map": "function (doc, meta) {\n  var product = {\n  \"id\": doc.id\n  };\n  emit(doc.productId, product);\n}"
+        }
+    }
+}

@@ -50,7 +50,7 @@ namespace ProductContext.Domain.Projections
                         VariantTypeId = e.Message.VariantType
                     });
 
-                    await bucket.UpsertAsync(new Document<ProductDocument>()
+                    await bucket.UpsertAsync(new Document<ProductDocument>
                     {
                         Id = e.Message.ProductId,
                         Content = product
@@ -69,7 +69,7 @@ namespace ProductContext.Domain.Projections
                         return;
                     }
 
-                    product.Variants.Add(new ProductVariantDocument()
+                    product.Variants.Add(new ProductVariantDocument
                     {
                         ProductId = e.Message.ProductId,
                         Barcode = e.Message.Barcode,
@@ -79,15 +79,15 @@ namespace ProductContext.Domain.Projections
                         VariantType = e.Message.VariantType
                     });
 
-                    await bucket.UpsertAsync(new Document<ProductDocument>()
+                    await bucket.UpsertAsync(new Document<ProductDocument>
                     {
                         Id = e.Message.ProductId,
                         Content = product
                     });
                 }
-
             });
 
+            /*
             When<SetProjectionPosition>(async (bucket, e) =>
             {
                 string id = CouchbaseCheckpointStore.GetCheckpointDocumentId(nameof(ProductProjection));
@@ -110,7 +110,7 @@ namespace ProductContext.Domain.Projections
                         Content = new CheckpointDocument { Checkpoint = e.Position }
                     });
                 }
-            });
+            });*/
         }
     }
 }
