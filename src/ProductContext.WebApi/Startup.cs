@@ -138,7 +138,7 @@ namespace ProductContext.WebApi
                                           .Deserializer(new DefaultEventDeserializer())
                                           .CheckpointStore(new CouchbaseCheckpointStore(getBucket))
                                           .Snaphotter(
-                                              new EventStoreSnapshotter<Product>(
+                                              new EventStoreSnapshotter<Product, ProductSnapshot>(
                                                   productRepository,
                                                   e => e.Event.EventNumber > 0 && e.Event.EventNumber % 5 == 0,
                                                   stream => $"{stream}-Snapshot",

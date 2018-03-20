@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 using AggregateSource;
 using AggregateSource.EventStore;
-using AggregateSource.EventStore.Snapshots;
 
 using EventStore.ClientAPI;
 
@@ -12,12 +11,12 @@ using Newtonsoft.Json;
 
 namespace ProductContext.Framework
 {
-    public class EventStoreSnapshotter<TAggregate> : ISnapshotter where TAggregate : AggregateRootEntity
+    public class EventStoreSnapshotter<TAggregate, TSnapshot> : ISnapshotter where TAggregate : AggregateRootEntity
     {
+        private readonly Now _now;
         private readonly AsyncRepository<TAggregate> _repository;
         private readonly Func<string, string> _snapshotNameResolve;
         private readonly Func<ResolvedEvent, bool> _strategy;
-        private readonly Now _now;
 
         public EventStoreSnapshotter(
             AsyncRepository<TAggregate> repository,
@@ -40,21 +39,20 @@ namespace ProductContext.Framework
 
             _repository.UnitOfWork.TryGet(stream, out Aggregate aggregate);
 
-            object snapshot = new Snapshot(aggregate.ExpectedVersion, ((ISnapshotable)root).TakeSnapshot());
-
             var changes = new EventData(
                 Guid.NewGuid(),
-                snapshot.GetType().TypeQualifiedName(),
+                typeof(TSnapshot).TypeQualifiedName(),
                 true,
-                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(snapshot)),
-                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new EventMetadata()
+                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(((ISnapshotable)root).TakeSnapshot(), DefaultEventDeserializer.DefaultSettings)),
+                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new EventMetadata
                 {
                     AggregateAssemblyQualifiedName = typeof(TAggregate).AssemblyQualifiedName,
                     AggregateType = typeof(TAggregate).Name,
                     TimeStamp = _now(),
-                    IsSnapshot = true
-                }))
-            );
+                    IsSnapshot = true,
+                    Version = aggregate.ExpectedVersion
+                }, DefaultEventDeserializer.DefaultSettings))
+                );
 
             string snapshotStream = _snapshotNameResolve(stream);
             await _repository.Connection.AppendToStreamAsync(snapshotStream, ExpectedVersion.Any, changes);

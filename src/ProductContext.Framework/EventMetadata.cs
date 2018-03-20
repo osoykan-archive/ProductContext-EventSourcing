@@ -11,5 +11,7 @@ namespace ProductContext.Framework
         public string AggregateAssemblyQualifiedName { get; set; }
 
         public bool IsSnapshot { get; set; }
+
+        public int Version { get; set; }
     }
 }

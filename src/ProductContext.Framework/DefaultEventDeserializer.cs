@@ -24,6 +24,6 @@ namespace ProductContext.Framework
                 Encoding.UTF8.GetString(resolvedEvent.Event.Data),
                 Type.GetType(resolvedEvent.Event.EventType, true),
                 DefaultSettings
-            );
+                );
     }
 }

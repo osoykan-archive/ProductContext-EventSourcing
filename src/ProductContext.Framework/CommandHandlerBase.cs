@@ -69,7 +69,7 @@ namespace ProductContext.Framework
                                                        AggregateAssemblyQualifiedName = typeof(T).AssemblyQualifiedName,
                                                        IsSnapshot = false
                                                    }))
-                                               )).ToArray();
+                                                   )).ToArray();
                 try
                 {
                     await _repository.Connection.AppendToStreamAsync(_getStreamName(typeof(T), aggregate.Identifier), aggregate.ExpectedVersion, changes);

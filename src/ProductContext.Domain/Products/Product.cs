@@ -33,7 +33,7 @@ namespace ProductContext.Domain.Products
 
         public void RestoreSnapshot(object state)
         {
-            var snapshot = (Product)state;
+            var snapshot = (ProductSnapshot)state;
 
             Variants = snapshot.Variants;
             Contents = snapshot.Contents;
@@ -42,14 +42,14 @@ namespace ProductContext.Domain.Products
             ProductId = snapshot.ProductId;
         }
 
-        public object TakeSnapshot() => new
+        public object TakeSnapshot() => new ProductSnapshot
         {
-            BrandId,
-            Variants,
-            ProductId,
-            Contents,
-            BusinessUnitId,
-            Code
+            BrandId = BrandId,
+            Variants = Variants,
+            ProductId = ProductId,
+            Contents = Contents,
+            BusinessUnitId = BusinessUnitId,
+            Code = Code
         };
 
         public static Product Create(string id, int brandId, string code, int businessUnitId)
@@ -57,7 +57,7 @@ namespace ProductContext.Domain.Products
             Product aggregate = Factory();
             aggregate.ApplyChange(
                 new Events.V1.ProductCreated(id, code, brandId, businessUnitId)
-            );
+                );
 
             return aggregate;
         }
@@ -105,7 +105,7 @@ namespace ProductContext.Domain.Products
                     variantTypeValueId,
                     (int)Enums.ProductContentStatus.Draft,
                     (int)Enums.VariantType.Color)
-            );
+                );
         }
 
         public void AddVariant(string contentId, string variantId, string barcode, string variantTypeValueId)
@@ -124,7 +124,7 @@ namespace ProductContext.Domain.Products
 
             ApplyChange(
                 new Events.V1.VariantAddedToProduct(ProductId.Id, contentId, variantId, barcode, variantTypeValueId, (int)Enums.VariantType.Size)
-            );
+                );
         }
     }
 }
