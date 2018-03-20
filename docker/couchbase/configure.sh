@@ -24,6 +24,8 @@ sleep 5
 
 # Create ProductContext bucket
 curl -X POST -u Administrator:password -d 'name=ProductContext' -d 'ramQuotaMB=20'0 -d 'authType=none' -d 'replicaNumber=0' -d 'proxyPort=11216' http://127.0.0.1:8091/pools/default/buckets
+#curl -X PUT http://localhost:8091/settings/rbac/users/local/idxmanage -d "name=ProductContext&roles=query_manage_index[bucket1]&password=password" -u Administrator:password
+#curl -v http://127.0.0.1:8093/query/service -d 'statement=CREATE PRIMARY INDEX `ProductIndex` ON `ProductContext` USING GSI;'
 
 # Create by_productId view on ProductContext bucket.
 cp /opt/couchbase/by_productId.ddoc .
