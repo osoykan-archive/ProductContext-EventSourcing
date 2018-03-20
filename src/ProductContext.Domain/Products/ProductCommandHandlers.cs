@@ -20,7 +20,7 @@ namespace ProductContext.Domain.Products
             GetSnapshotStreamName getSnapshotStreamName,
             AsyncRepository<Product> repository,
             AsyncSnapshotableRepository<Product> snapshotableRepository,
-            Func<DateTime> getDateTime) : base(getStreamName, getSnapshotStreamName, repository, snapshotableRepository, getDateTime)
+            Now now) : base(getStreamName, getSnapshotStreamName, repository, snapshotableRepository, now)
         {
         }
 
@@ -41,7 +41,7 @@ namespace ProductContext.Domain.Products
         public Task HandleAsync(Commands.V1.CreateProduct command) =>
             Add(async repository =>
             {
-                string productId = GetId(Guid.NewGuid().ToString());
+                string productId = Guid.NewGuid().ToString();
 
                 Product product = Product.Create(
                     productId,

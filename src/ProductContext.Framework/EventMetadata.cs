@@ -9,5 +9,7 @@ namespace ProductContext.Framework
         public string AggregateType { get; set; }
 
         public string AggregateAssemblyQualifiedName { get; set; }
+
+        public bool IsSnapshot { get; set; }
     }
 }

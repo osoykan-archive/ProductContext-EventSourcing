@@ -74,7 +74,7 @@ namespace AggregateSource.EventStore.Snapshots
             }
 
             Optional<Snapshot> snapshot = await _reader.ReadOptionalAsync(identifier);
-            var version = 1;
+            var version = StreamPosition.Start;
             if (snapshot.HasValue)
             {
                 version = snapshot.Value.Version + 1;

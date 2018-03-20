@@ -94,10 +94,16 @@ namespace ProductContext.Framework
 
                 var metadata = JsonConvert.DeserializeObject<EventMetadata>(Encoding.UTF8.GetString(e.Event.Metadata));
 
-                ISnapshotter snapshotter = _snapshotters.FirstOrDefault(x => x.ShouldTakeSnapshot(Type.GetType(metadata.AggregateAssemblyQualifiedName)));
-                if (snapshotter!=null)
+                ISnapshotter snapshotter = _snapshotters.FirstOrDefault(
+                    x =>
+                        x.ShouldTakeSnapshot(Type.GetType(metadata.AggregateAssemblyQualifiedName), e) && !metadata.IsSnapshot);
+
+                if (snapshotter != null)
                 {
                     await snapshotter.Take(e.OriginalStreamId);
+
+                    Log.Debug("Snapshot was taken for {aggregate} on event{eventType}{eventId} at number {eventNumber}",
+                        metadata.AggregateType, e.Event.EventType, e.Event.EventId, e.Event.EventNumber);
                 }
             };
 
