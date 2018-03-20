@@ -1,41 +1,39 @@
-﻿using System;
-using System.Threading.Tasks;
-
-using AggregateSource;
+﻿using AggregateSource;
 using AggregateSource.EventStore;
 using AggregateSource.EventStore.Resolvers;
 using AggregateSource.EventStore.Snapshots;
-
 using Couchbase.Core;
-
 using EventStore.ClientAPI;
-
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 using NodaTime;
-
 using ProductContext.Domain.Contracts;
 using ProductContext.Domain.Products;
 using ProductContext.Domain.Projections;
 using ProductContext.Framework;
 using ProductContext.WebApi.Plumbing;
-
 using Swashbuckle.AspNetCore.Swagger;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ProductContext.WebApi
 {
     public class Startup
     {
+        private static readonly GetSnapshotStreamName getSnapshotStreamName = (type, id) => $"{getStreamName(type, id)}-Snapshot";
+        private static readonly GetStreamName getStreamName = (type, id) => $"{type.Name}-{id}";
+        private static readonly Now now = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
+
         public Startup(IHostingEnvironment env)
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                                            .SetBasePath(env.ContentRootPath)
-                                            .AddJsonFile("appsettings.json", false, true)
-                                            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
-                                            .AddEnvironmentVariables();
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+                .AddEnvironmentVariables();
 
             Configuration = builder.Build();
         }
@@ -54,10 +52,6 @@ namespace ProductContext.WebApi
                 Configuration["Data:EventStore:Username"],
                 Configuration["Data:EventStore:Password"],
                 Configuration["Data:EventStore:Url"]).GetAwaiter().GetResult();
-
-            GetStreamName getStreamName = (type, id) => $"{type.Name}-{id}";
-            GetSnapshotStreamName getSnapshotStreamName = (type, id) => $"{getStreamName(type, id)}-Snapshot";
-            Now now = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
 
             services.AddTransient<IBus>(_ =>
             {
@@ -120,33 +114,40 @@ namespace ProductContext.WebApi
                 Configuration["Data:Couchbase:Password"],
                 Configuration["Data:Couchbase:Url"]);
 
-            var defaultSerializer = new DefaultEventDeserializer();
-            var concurrentUnitOfWork = new ConcurrentUnitOfWork();
+            Func<string, Task<Aggregate>> getProductAggregate = async streamId =>
+            {
+                var defaultSerializer = new DefaultEventDeserializer();
+                var concurrentUnitOfWork = new ConcurrentUnitOfWork();
 
-            var productRepository = new AsyncRepository<Product>(
-                Product.Factory,
-                concurrentUnitOfWork,
-                esConnection,
-                new EventReaderConfiguration(
-                    new SliceSize(500),
-                    defaultSerializer,
-                    new PassThroughStreamNameResolver(),
-                    new NoStreamUserCredentialsResolver()));
+                var productRepository = new AsyncRepository<Product>(
+                    Product.Factory,
+                    concurrentUnitOfWork,
+                    esConnection,
+                    new EventReaderConfiguration(
+                        new SliceSize(500),
+                        defaultSerializer,
+                        new TypedStreamNameResolver(typeof(Product), getStreamName),
+                        new NoStreamUserCredentialsResolver()));
+
+                await productRepository.GetAsync(streamId);
+
+                return concurrentUnitOfWork.GetChanges().First();
+            };
 
             await ProjectionManagerBuilder.With
                                           .Connection(esConnection)
                                           .Deserializer(new DefaultEventDeserializer())
                                           .CheckpointStore(new CouchbaseCheckpointStore(getBucket))
                                           .Snaphotter(
-                                              new EventStoreSnapshotter<Product, ProductSnapshot>(
-                                                  productRepository,
+                                              new EventStoreSnapshotter<Aggregate, ProductSnapshot>(
+                                                  getProductAggregate,
+                                                  () => esConnection,
                                                   e => e.Event.EventNumber > 0 && e.Event.EventNumber % 5 == 0,
                                                   stream => $"{stream}-Snapshot",
-                                                  () => DateTime.UtcNow)
-                                          )
+                                                 now))
                                           .Projections(
                                               ProjectorDefiner.For<ProductProjection>()
-                                          ).Activate(getBucket);
+                ).Activate(getBucket);
         }
     }
 }
