@@ -16,7 +16,6 @@ namespace ProductContext.Framework
 {
     public class CommandHandlerBase<T> where T : AggregateRootEntity, ISnapshotable
     {
-        private readonly GetSnapshotStreamName _getSnapshotStreamName;
         private readonly GetStreamName _getStreamName;
         private readonly Now _now;
         private readonly AsyncRepository<T> _repository;
@@ -24,7 +23,6 @@ namespace ProductContext.Framework
 
         public CommandHandlerBase(
             GetStreamName getStreamName,
-            GetSnapshotStreamName getSnapshotStreamName,
             AsyncRepository<T> repository,
             AsyncSnapshotableRepository<T> snapshotableRepository,
             Now now)
@@ -32,7 +30,6 @@ namespace ProductContext.Framework
             _repository = repository;
             _now = now;
             _getStreamName = getStreamName;
-            _getSnapshotStreamName = getSnapshotStreamName;
             _snapshotableRepository = snapshotableRepository;
         }
 

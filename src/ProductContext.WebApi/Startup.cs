@@ -23,9 +23,9 @@ namespace ProductContext.WebApi
 {
     public class Startup
     {
-        private static readonly GetSnapshotStreamName getSnapshotStreamName = (type, id) => $"{getStreamName(type, id)}-Snapshot";
-        private static readonly GetStreamName getStreamName = (type, id) => $"{type.Name}-{id}";
-        private static readonly Now now = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
+        private static readonly GetSnapshotStreamName s_getSnapshotStreamName = (type, id) => $"{s_getStreamName(type, id)}-Snapshot";
+        private static readonly GetStreamName s_getStreamName = (type, id) => $"{type.Name}-{id}";
+        private static readonly Now s_now = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
 
         public Startup(IHostingEnvironment env)
         {
@@ -64,21 +64,20 @@ namespace ProductContext.WebApi
                     Product.Factory,
                     concurrentUnitOfWork,
                     esConnection,
-                    new EventReaderConfiguration(new SliceSize(500), defaultSerializer, new TypedStreamNameResolver(typeof(Product), getStreamName), new NoStreamUserCredentialsResolver()));
+                    new EventReaderConfiguration(new SliceSize(500), defaultSerializer, new TypedStreamNameResolver(typeof(Product), s_getStreamName), new NoStreamUserCredentialsResolver()));
 
                 var productSnapshotableRepository = new AsyncSnapshotableRepository<Product>(
                     Product.Factory,
                     concurrentUnitOfWork,
                     esConnection,
-                    new EventReaderConfiguration(new SliceSize(500), defaultSerializer, new TypedStreamNameResolver(typeof(Product), getStreamName), new NoStreamUserCredentialsResolver()),
-                    new AsyncSnapshotReader(esConnection, new SnapshotReaderConfiguration(defaultSnapshotDeserializer, new SnapshotableStreamNameResolver(typeof(Product), getStreamName), new NoStreamUserCredentialsResolver())));
+                    new EventReaderConfiguration(new SliceSize(500), defaultSerializer, new TypedStreamNameResolver(typeof(Product), s_getStreamName), new NoStreamUserCredentialsResolver()),
+                    new AsyncSnapshotReader(esConnection, new SnapshotReaderConfiguration(defaultSnapshotDeserializer, new SnapshotableStreamNameResolver(typeof(Product), s_getStreamName), new NoStreamUserCredentialsResolver())));
 
                 var productCommandHandlers = new ProductCommandHandlers(
-                    getStreamName,
-                    getSnapshotStreamName,
+                    s_getStreamName,
                     productRepository,
                     productSnapshotableRepository,
-                    now);
+                    s_now);
 
                 bus.Subscribe<Commands.V1.CreateProduct>(productCommandHandlers);
                 bus.Subscribe<Commands.V1.AddVariantToProduct>(productCommandHandlers);
@@ -126,7 +125,7 @@ namespace ProductContext.WebApi
                     new EventReaderConfiguration(
                         new SliceSize(500),
                         defaultSerializer,
-                        new TypedStreamNameResolver(typeof(Product), getStreamName),
+                        new TypedStreamNameResolver(typeof(Product), s_getStreamName),
                         new NoStreamUserCredentialsResolver()));
 
                 await productRepository.GetAsync(streamId);
@@ -144,7 +143,7 @@ namespace ProductContext.WebApi
                                                   () => esConnection,
                                                   e => e.Event.EventNumber > 0 && e.Event.EventNumber % 5 == 0,
                                                   stream => $"{stream}-Snapshot",
-                                                 now))
+                                                 s_now))
                                           .Projections(
                                               ProjectorDefiner.For<ProductProjection>()
                 ).Activate(getBucket);

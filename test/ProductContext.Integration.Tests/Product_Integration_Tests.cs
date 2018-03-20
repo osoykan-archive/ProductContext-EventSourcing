@@ -66,11 +66,13 @@ namespace ProductContext.Integration.Tests
                 new EventReaderConfiguration(new SliceSize(500), defaultSerializer, new PassThroughStreamNameResolver(), new NoStreamUserCredentialsResolver()),
                 new AsyncSnapshotReader(esConnection, new SnapshotReaderConfiguration(defaultSnapshotDeserializer, new PassThroughStreamNameResolver(), new NoStreamUserCredentialsResolver())));
 
-            DateTime GetDatetime() => DateTime.UtcNow;
+            DateTime GetDatetime()
+            {
+                return DateTime.UtcNow;
+            }
 
             var productCommandHandlers = new ProductCommandHandlers(
                 (type, id) => $"{type.Name}-{id}",
-                (type, id) => $"{type.Name}-{id}-Snapshot",
                 productRepository,
                 productSnapshotableRepository,
                 GetDatetime);
@@ -86,7 +88,7 @@ namespace ProductContext.Integration.Tests
                                           .CheckpointStore(new CouchbaseCheckpointStore(getBucket))
                                           .Projections(
                                               ProjectorDefiner.For<ProductProjection>()
-                ).Activate(getBucket);
+                                          ).Activate(getBucket);
 
             await bus.PublishAsync(new Commands.V1.CreateProduct { BrandId = 1, BusinessUnitId = 1, Code = "CODE123" });
         }

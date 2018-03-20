@@ -17,10 +17,9 @@ namespace ProductContext.Domain.Products
     {
         public ProductCommandHandlers(
             GetStreamName getStreamName,
-            GetSnapshotStreamName getSnapshotStreamName,
             AsyncRepository<Product> repository,
             AsyncSnapshotableRepository<Product> snapshotableRepository,
-            Now now) : base(getStreamName, getSnapshotStreamName, repository, snapshotableRepository, now)
+            Now now) : base(getStreamName, repository, snapshotableRepository, now)
         {
         }
 
