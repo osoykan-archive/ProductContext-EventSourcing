@@ -19,6 +19,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
+using ProductContext.Domain.Products.Snapshots;
+
 namespace ProductContext.WebApi
 {
     public class Startup
@@ -57,7 +59,7 @@ namespace ProductContext.WebApi
             {
                 var bus = new InMemoryBus();
                 var defaultSerializer = new DefaultEventDeserializer();
-                var defaultSnapshotDeserializer = new DefaultSnapshotDeserializer();
+             
                 var concurrentUnitOfWork = new ConcurrentUnitOfWork();
 
                 var productRepository = new AsyncRepository<Product>(
@@ -71,7 +73,7 @@ namespace ProductContext.WebApi
                     concurrentUnitOfWork,
                     esConnection,
                     new EventReaderConfiguration(new SliceSize(500), defaultSerializer, new TypedStreamNameResolver(typeof(Product), s_getStreamName), new NoStreamUserCredentialsResolver()),
-                    new AsyncSnapshotReader(esConnection, new SnapshotReaderConfiguration(defaultSnapshotDeserializer, new SnapshotableStreamNameResolver(typeof(Product), s_getSnapshotStreamName), new NoStreamUserCredentialsResolver())));
+                    new AsyncSnapshotReader(esConnection, new SnapshotReaderConfiguration(new DefaultSnapshotDeserializer(), new SnapshotableStreamNameResolver(typeof(Product), s_getSnapshotStreamName), new NoStreamUserCredentialsResolver())));
 
                 var productCommandHandlers = new ProductCommandHandlers(
                     s_getStreamName,

@@ -35,6 +35,15 @@ namespace ProductContext.Integration.Tests
         }
 
         [Fact]
+        public async Task product_creation_integraiton_test()
+        {
+            string productId = Guid.NewGuid().ToString();
+            await Bus.PublishAsync(new Commands.V1.CreateProduct { ProductId = productId, BrandId = 1, BusinessUnitId = 1, Code = "CODE123" });
+
+            WaitUntilProjected(x => x.ProductId == productId);
+        }
+
+        [Fact]
         public async Task product_content_add_shoudl_work_on_existing_product()
         {
             ProductDocument document = Query(x => x.Code == "CODE123");
@@ -52,15 +61,6 @@ namespace ProductContext.Integration.Tests
         }
 
         [Fact]
-        public async Task product_creation_integraiton_test()
-        {
-            string productId = Guid.NewGuid().ToString();
-            await Bus.PublishAsync(new Commands.V1.CreateProduct { ProductId = productId, BrandId = 1, BusinessUnitId = 1, Code = "CODE123" });
-
-            WaitUntilProjected(x => x.ProductId == productId);
-        }
-
-        [Fact]
         public async Task product_variant_add_should_work_on_existing_content_and_product()
         {
             ProductDocument doc = Query(x => x.Contents.Any());
@@ -70,7 +70,7 @@ namespace ProductContext.Integration.Tests
             {
                 ProductId = doc.ProductId,
                 VariantId = variantId,
-                Barcode = "BARCODE123",
+                Barcode = Guid.NewGuid().ToString(),
                 ContentId = doc.Contents.First().ProductContentId,
                 VariantTypeValueId = Guid.NewGuid().ToString()
             });

@@ -5,6 +5,8 @@ using System.Linq;
 using AggregateSource;
 
 using ProductContext.Domain.Contracts;
+using ProductContext.Domain.Extensions;
+using ProductContext.Domain.Products.Snapshots;
 
 namespace ProductContext.Domain.Products
 {
@@ -35,8 +37,8 @@ namespace ProductContext.Domain.Products
         {
             var snapshot = (ProductSnapshot)state;
 
-            Variants = snapshot.Variants;
-            Contents = snapshot.Contents;
+            Variants = snapshot.Variants.Restore(ApplyChange);
+            Contents = snapshot.Contents.Restore(ApplyChange);
             Code = snapshot.Code;
             BrandId = snapshot.BrandId;
             ProductId = snapshot.ProductId;
@@ -45,9 +47,9 @@ namespace ProductContext.Domain.Products
         public object TakeSnapshot() => new ProductSnapshot
         {
             BrandId = BrandId,
-            Variants = Variants,
+            Variants = Variants.ToSnapshot(),
             ProductId = ProductId,
-            Contents = Contents,
+            Contents = Contents.ToSnapshot(),
             BusinessUnitId = BusinessUnitId,
             Code = Code
         };
