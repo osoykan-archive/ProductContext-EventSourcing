@@ -26,29 +26,25 @@ namespace ProductContext.Domain.Products
         public Task HandleAsync(Commands.V1.AddContentToProduct message) =>
             Update(message.ProductId, async product =>
             {
-                string contentId = Guid.NewGuid().ToString();
-                product.AddContent(contentId, message.Description, message.VariantTypeValueId);
+                product.AddContent(message.ProductContentId, message.Description, message.VariantTypeValueId);
             });
 
         public Task HandleAsync(Commands.V1.AddVariantToProduct message) =>
             Update(message.ProductId, async product =>
             {
-                string variantId = Guid.NewGuid().ToString();
-                product.AddVariant(message.ContentId, variantId, message.Barcode, message.VariantTypeValueId);
+                product.AddVariant(message.ContentId, message.VariantId, message.Barcode, message.VariantTypeValueId);
             });
 
         public Task HandleAsync(Commands.V1.CreateProduct command) =>
             Add(async repository =>
             {
-                string productId = Guid.NewGuid().ToString();
-
                 Product product = Product.Create(
-                    productId,
+                    command.ProductId,
                     command.BrandId,
                     command.Code,
                     command.BusinessUnitId);
 
-                repository.Add(productId, product);
+                repository.Add(command.ProductId, product);
             });
     }
 }

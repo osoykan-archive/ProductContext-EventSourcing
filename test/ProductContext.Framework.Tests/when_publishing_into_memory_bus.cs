@@ -13,7 +13,7 @@ namespace ProductContext.Framework.Tests
 
         public when_publishing_into_memory_bus()
         {
-            _bus = new InMemoryBus("test_bus");
+            _bus = new InMemoryBus();
         }
 
         [Fact(Skip = "We do not check each message for null for performance reasons.")]

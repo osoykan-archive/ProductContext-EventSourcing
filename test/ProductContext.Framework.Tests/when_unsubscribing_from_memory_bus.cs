@@ -15,7 +15,7 @@ namespace ProductContext.Framework.Tests
 
         public when_unsubscribing_from_memory_bus()
         {
-            _bus = new InMemoryBus("test_bus");
+            _bus = new InMemoryBus();
         }
 
         [Fact]

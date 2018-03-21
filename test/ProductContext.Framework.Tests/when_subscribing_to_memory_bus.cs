@@ -13,7 +13,7 @@ namespace ProductContext.Framework.Tests
 
         public when_subscribing_to_memory_bus()
         {
-            _bus = new InMemoryBus("test_bus");
+            _bus = new InMemoryBus();
         }
 
         [Fact]

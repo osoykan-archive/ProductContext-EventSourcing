@@ -12,26 +12,16 @@ namespace ProductContext.Framework
     {
         private readonly List<IMessageHandler> _handlers;
 
-        private InMemoryBus() : this("Test")
-        {
-        }
-
-        public InMemoryBus(string name)
-        {
-            Name = name;
-            _handlers = new List<IMessageHandler>();
-        }
-
-        public string Name { get; }
+        public InMemoryBus() => _handlers = new List<IMessageHandler>();
 
         public void Subscribe<T>(IHandle<T> handler) where T : Message
         {
             Ensure.NotNull(handler, "handler");
 
-            var handlers = _handlers;
+            List<IMessageHandler> handlers = _handlers;
             if (!handlers.Any(x => x.IsSame<T>(handler)))
             {
-                handlers.Add(new MessageHandler<T>(handler, handler.GetType().Name));
+                handlers.Add(new MessageHandler<T>(handler));
             }
         }
 
@@ -39,8 +29,8 @@ namespace ProductContext.Framework
         {
             Ensure.NotNull(handler, "handler");
 
-            var handlers = _handlers;
-            var messageHandler = handlers.FirstOrDefault(x => x.IsSame<T>(handler));
+            List<IMessageHandler> handlers = _handlers;
+            IMessageHandler messageHandler = handlers.FirstOrDefault(x => x.IsSame<T>(handler));
             if (messageHandler != null)
             {
                 handlers.Remove(messageHandler);
@@ -49,19 +39,17 @@ namespace ProductContext.Framework
 
         public async Task PublishAsync(Message message)
         {
-            var handlers = _handlers;
+            List<IMessageHandler> handlers = _handlers;
             for (int i = 0, n = handlers.Count; i < n; ++i)
             {
-                var handler = handlers[i];
-                await handler.TryHandleAsync(message).ConfigureAwait(false);
+                IMessageHandler handler = handlers[i];
+                await handler.TryHandleAsync(message);
             }
         }
 
         public async Task HandleAsync(Message message)
         {
-            await PublishAsync(message).ConfigureAwait(false);
+            await PublishAsync(message);
         }
-
-        public static InMemoryBus CreateTest() => new InMemoryBus();
     }
 }
