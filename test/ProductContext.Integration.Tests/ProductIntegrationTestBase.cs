@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 using AggregateSource;
 using AggregateSource.EventStore;
@@ -10,7 +9,6 @@ using AggregateSource.EventStore.Snapshots;
 
 using Couchbase.Core;
 using Couchbase.Linq;
-using Couchbase.N1QL;
 
 using EventStore.ClientAPI;
 
@@ -71,7 +69,6 @@ namespace ProductContext.Integration.Tests
             Bus.Subscribe<Commands.V1.AddContentToProduct>(productCommandHandlers);
 
             GetBucket = Defaults.GetCouchbaseBucket(nameof(ProductContext), "Administrator", "password", "http://localhost:8091");
-            CreateIndex();
 
             ProjectionManagerBuilder.With
                                     .Connection(esConnection)
@@ -79,7 +76,7 @@ namespace ProductContext.Integration.Tests
                                     .CheckpointStore(new CouchbaseCheckpointStore(GetBucket))
                                     .Projections(
                                         ProjectorDefiner.For<ProductProjection>()
-                ).Activate(GetBucket).GetAwaiter().GetResult();
+                                    ).Activate(GetBucket).GetAwaiter().GetResult();
         }
 
         public IBus Bus { get; }
@@ -99,7 +96,14 @@ namespace ProductContext.Integration.Tests
             {
                 using (IBucket bucket = GetBucket())
                 {
-                    doc = new BucketContext(bucket).Query<ProductDocument>().FirstOrDefault(filter);
+                    try
+                    {
+                        doc = new BucketContext(bucket).Query<ProductDocument>().FirstOrDefault(filter);
+                    }
+                    catch (Exception exception)
+                    {
+                        doc = null;
+                    }
                 }
             }
             while (doc == null);
@@ -114,7 +118,14 @@ namespace ProductContext.Integration.Tests
             {
                 using (IBucket bucket = GetBucket())
                 {
-                    doc = new BucketContext(bucket).Query<ProductDocument>().FirstOrDefault(filter);
+                    try
+                    {
+                        doc = new BucketContext(bucket).Query<ProductDocument>().FirstOrDefault(filter);
+                    }
+                    catch (Exception exception)
+                    {
+                        doc = null;
+                    }
                 }
             }
             while (doc == null);
