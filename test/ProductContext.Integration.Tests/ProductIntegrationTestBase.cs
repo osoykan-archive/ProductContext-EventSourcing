@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using AggregateSource;
 using AggregateSource.EventStore;
@@ -16,6 +17,7 @@ using NodaTime;
 
 using ProductContext.Domain.Contracts;
 using ProductContext.Domain.Products;
+using ProductContext.Domain.Products.Snapshots;
 using ProductContext.Domain.Projections;
 using ProductContext.Framework;
 
@@ -70,24 +72,42 @@ namespace ProductContext.Integration.Tests
 
             GetBucket = Defaults.GetCouchbaseBucket(nameof(ProductContext), "Administrator", "password", "http://localhost:8091");
 
+            Func<string, Task<Aggregate>> getProductAggregate = async streamId =>
+            {
+                var productRepository = new AsyncRepository<Product>(
+                    Product.Factory,
+                    new ConcurrentUnitOfWork(),
+                    esConnection,
+                    new EventReaderConfiguration(
+                        new SliceSize(500),
+                        defaultSerializer,
+                        new PassThroughStreamNameResolver(),
+                        new NoStreamUserCredentialsResolver()));
+
+                await productRepository.GetAsync(streamId);
+                productRepository.UnitOfWork.TryGet(streamId, out Aggregate aggregate);
+                return aggregate;
+            };
+            
             ProjectionManagerBuilder.With
                                     .Connection(esConnection)
                                     .Deserializer(new DefaultEventDeserializer())
                                     .CheckpointStore(new CouchbaseCheckpointStore(GetBucket))
+                                    .Snaphotter(
+                                        new EventStoreSnapshotter<Aggregate, ProductSnapshot>(
+                                            getProductAggregate,
+                                            () => esConnection,
+                                            e => e.Event.EventNumber > 0 && e.Event.EventNumber % 1 == 0,
+                                            stream => $"{stream}-Snapshot",
+                                            s_now
+                                            )
+                                        )
                                     .Projections(
                                         ProjectorDefiner.For<ProductProjection>()
                                     ).Activate(GetBucket).GetAwaiter().GetResult();
         }
 
         public IBus Bus { get; }
-
-        public void CreateIndex()
-        {
-            using (IBucket bucket = GetBucket())
-            {
-                bucket.Query<dynamic>("CREATE PRIMARY INDEX `ProductIndex` ON `ProductContext` USING GSI;");
-            }
-        }
 
         public ProductDocument Query(Expression<Func<ProductDocument, bool>> filter)
         {
