@@ -18,7 +18,7 @@ namespace ProductContext.Framework
         private int? _maxLiveQueueSize;
         private ProjectorDefiner[] _projections;
         private int? _readBatchSize;
-        private ISnapshotter[] _snapshotters;
+        private ISnapshotter[] _snapshotters = new ISnapshotter[] { };
 
         public ProjectionManagerBuilder Connection(IEventStoreConnection connection)
         {

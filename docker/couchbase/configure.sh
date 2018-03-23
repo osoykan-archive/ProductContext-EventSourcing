@@ -27,10 +27,15 @@ curl -X POST -u Administrator:password -d 'name=ProductContext' -d 'ramQuotaMB=2
 #curl -X PUT http://localhost:8091/settings/rbac/users/local/idxmanage -d "name=ProductContext&roles=query_manage_index[bucket1]&password=password" -u Administrator:password
 #curl -X POST -v -u Administrator:password http://localhost:8093/query/service -d statement=CREATE%20PRIMARY%20INDEX%20primary_index%20ON%20ProductContext:ProductContext%20USING%20GSI
 
+
+while [[ "$(curl -u Administrator:password -s -o /dev/null -w ''%{http_code}'' http://127.0.0.1:8091/pools/default/buckets/ProductContext)" != "200" ]]; do sleep 1; done
+
 # Create by_productId view on ProductContext bucket.
 cp /opt/couchbase/by_productId.ddoc .
 curl -X PUT -H 'Content-Type: application/json' http://Administrator:password@127.0.0.1:8092/ProductContext/_design/dev_by_productId	-d @by_productId.ddoc
 curl -X PUT -H 'Content-Type: application/json' http://Administrator:password@127.0.0.1:8092/ProductContext/_design/by_productId	-d @by_productId.ddoc
-curl -X POST -v -u Administrator:password http://127.0.0.1:8093/query/service -d 'statement=CREATE PRIMARY INDEX `Product_Index` ON `ProductContext` USING GSI WITH {"defer_build":true};'
+curl -X POST -v -u Administrator:password http://127.0.0.1:8093/query/service -d 'statement=CREATE PRIMARY INDEX `Product_Index` ON `ProductContext` USING GSI WITH {"defer_build":false};'
+curl -X POST -v -u Administrator:password http://127.0.0.1:8093/query/service -d 'statement=BUILD INDEX ON `ProductContext`(`Product_Index`) USING GSI;'
+ 
 
 fg 1
