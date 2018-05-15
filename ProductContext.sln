@@ -39,7 +39,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".solution items", ".solutio
 		build.cake = build.cake
 		build.ps1 = build.ps1
 		build.sh = build.sh
-		configure-node.sh = configure-node.sh
 		docker-compose.yml = docker-compose.yml
 		Dockerfile = Dockerfile
 	EndProjectSection
@@ -48,7 +47,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AggregateSource.EventStore"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AggregateSource.EventStore.Tests", "lib\AggregateSource\src\EventStore.NetCore\AggregateSource.EventStore.Tests\AggregateSource.EventStore.Tests.csproj", "{3AE84F0C-54B9-41DB-9D0C-FC04194C1CDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductContext.Integration.Tests", "test\ProductContext.Integration.Tests\ProductContext.Integration.Tests.csproj", "{8AFCF9CC-C142-4262-812D-D1077F854030}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductContext.Integration.Tests", "test\ProductContext.Integration.Tests\ProductContext.Integration.Tests.csproj", "{8AFCF9CC-C142-4262-812D-D1077F854030}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{523D4357-9DF7-4AF6-BA1E-8B329EDAB839}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "couchbase", "couchbase", "{48013038-72D5-421A-970C-9AD6BDDB8D58}"
+	ProjectSection(SolutionItems) = preProject
+		docker\couchbase\by_productId.ddoc = docker\couchbase\by_productId.ddoc
+		docker\couchbase\configure.sh = docker\couchbase\configure.sh
+		docker\couchbase\Dockerfile = docker\couchbase\Dockerfile
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -127,6 +135,8 @@ Global
 		{3CDF42A6-223E-4B21-8A22-154886A55C92} = {5C3284C0-B14B-4482-899C-C44D14AC9E2D}
 		{3AE84F0C-54B9-41DB-9D0C-FC04194C1CDE} = {5C3284C0-B14B-4482-899C-C44D14AC9E2D}
 		{8AFCF9CC-C142-4262-812D-D1077F854030} = {A13A7111-BAFA-44EA-9EA5-6BF0BFBF63C8}
+		{523D4357-9DF7-4AF6-BA1E-8B329EDAB839} = {837C2646-2357-435F-8AEA-5E0654B87258}
+		{48013038-72D5-421A-970C-9AD6BDDB8D58} = {523D4357-9DF7-4AF6-BA1E-8B329EDAB839}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EE659F06-82B7-44A7-8333-DF99BB564321}
