@@ -40,7 +40,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".solution items", ".solutio
 		build.ps1 = build.ps1
 		build.sh = build.sh
 		docker-compose.yml = docker-compose.yml
-		Dockerfile = Dockerfile
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AggregateSource.EventStore", "lib\AggregateSource\src\EventStore.NetCore\AggregateSource.EventStore\AggregateSource.EventStore.csproj", "{3CDF42A6-223E-4B21-8A22-154886A55C92}"
