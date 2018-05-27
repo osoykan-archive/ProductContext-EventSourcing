@@ -1,15 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="CompareNETObjects" Version="4.53.0" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\Core\AggregateSource\AggregateSource.csproj" />
   </ItemGroup>
-
 </Project>

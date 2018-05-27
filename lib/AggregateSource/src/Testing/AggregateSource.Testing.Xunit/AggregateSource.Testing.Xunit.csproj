@@ -1,26 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;NETCOREAPP2_0;XUNIT</DefineConstants>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="..\AggregateSource.Testing.NUnit\ExtensionsForCommandScenario.cs" Link="ExtensionsForCommandScenario.cs" />
     <Compile Include="..\AggregateSource.Testing.NUnit\ExtensionsForConstructorScenario.cs" Link="ExtensionsForConstructorScenario.cs" />
     <Compile Include="..\AggregateSource.Testing.NUnit\ExtensionsForFactoryScenario.cs" Link="ExtensionsForFactoryScenario.cs" />
     <Compile Include="..\AggregateSource.Testing.NUnit\ExtensionsForQueryScenario.cs" Link="ExtensionsForQueryScenario.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.3.1" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\AggregateSource.Testing\AggregateSource.Testing.csproj" />
   </ItemGroup>
-
 </Project>

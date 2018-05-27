@@ -1,6 +1,5 @@
 ﻿using AggregateSource.Testing;
 using AggregateSource.Testing.Comparers;
-
 using KellermanSoftware.CompareNetObjects;
 
 namespace ProductContext.Domain.Tests
@@ -47,12 +46,10 @@ namespace ProductContext.Domain.Tests
             builder.Assert(CreateExceptionComparer());
         }
 
-        static CompareNetObjectsBasedEventComparer CreateEventComparer()
-        {
-            return new CompareNetObjectsBasedEventComparer(new CompareLogic());
-        }
+        private static CompareNetObjectsBasedEventComparer CreateEventComparer() =>
+            new CompareNetObjectsBasedEventComparer(new CompareLogic());
 
-        static IExceptionComparer CreateExceptionComparer()
+        private static IExceptionComparer CreateExceptionComparer()
         {
             var comparer = new CompareLogic();
             comparer.Config.MembersToIgnore.Add("Source");
@@ -61,9 +58,7 @@ namespace ProductContext.Domain.Tests
             return new CompareNetObjectsBasedExceptionComparer(comparer);
         }
 
-        static CompareNetObjectsBasedResultComparer CreateResultComparer()
-        {
-            return new CompareNetObjectsBasedResultComparer(new CompareLogic());
-        }
+        private static CompareNetObjectsBasedResultComparer CreateResultComparer() =>
+            new CompareNetObjectsBasedResultComparer(new CompareLogic());
     }
 }

@@ -1,9 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="..\..\lib\AggregateSource\src\Core\AggregateSource.Content.ExplicitRouting\AggregateRootEntity.cs" Link="AggregateRootEntity.cs" />
     <Compile Include="..\..\lib\AggregateSource\src\Core\AggregateSource.Content.ExplicitRouting\Entity.cs" Link="Entity.cs" />
@@ -14,19 +12,15 @@
     <Compile Include="..\..\lib\Value\Value\SetByValue.cs" Link="Value\SetByValue.cs" />
     <Compile Include="..\..\lib\Value\Value\ValueType.cs" Link="Value\ValueType.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\lib\AggregateSource\src\Core\AggregateSource\AggregateSource.csproj" />
     <ProjectReference Include="..\..\lib\AggregateSource\src\EventStore.NetCore\AggregateSource.EventStore\AggregateSource.EventStore.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Value\" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="CouchbaseNetClient" Version="2.5.10" />
     <PackageReference Include="Projac" Version="0.1.0" />
   </ItemGroup>
-
 </Project>

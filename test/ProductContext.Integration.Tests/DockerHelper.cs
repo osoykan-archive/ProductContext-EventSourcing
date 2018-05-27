@@ -119,17 +119,5 @@ namespace ProductContext.Integration.Tests
                 Console.WriteLine(e);
             }
         }
-
-        //[Test]
-        //[Explicit]
-        //public static async Task Test()
-        //{
-        //    using (await StartContainerAsync(
-        //        "rabbitmq:3.6-management-alpine",
-        //        new[] { 15672 }))
-        //    {
-        //        Thread.Sleep(TimeSpan.FromSeconds(5));
-        //    }
-        //}
     }
 }

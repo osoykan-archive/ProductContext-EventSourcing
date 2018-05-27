@@ -11,7 +11,10 @@ I wanted to implement what i learnt about DDD CQRS and EventSourcing, that's why
 * EventStore
 * Couchbase
 
+EventStore and Docker will be organized by `docker-compose.yml`
 
 # How
 
 Repository contains a `docker-compose.yml` file which provides all dependencies for bootstrapping and developing. 
+
+`docker-compose up`
