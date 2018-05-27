@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Bogus;
 using ProductContext.Domain.Contracts;
 using ProductContext.Framework;
 using Xunit;
@@ -35,7 +36,7 @@ namespace ProductContext.Integration.Tests
             var document = Query(x => x.Code == "CODE123");
 
             var contentId = Guid.NewGuid().ToString();
-            await Bus.PublishAsync(new Commands.V1.AddContentToProduct
+            await Mediator.Send(new Commands.V1.AddContentToProduct
             {
                 ProductId = document.ProductId,
                 Description = "%100 Cotton",
@@ -43,22 +44,24 @@ namespace ProductContext.Integration.Tests
                 ProductContentId = contentId
             });
 
-            WaitUntilProjected(x => x.Contents.Any(c => c.ProductContentId == contentId));
+            await WaitUntilProjected(x => x.Contents.Any(c => c.ProductContentId == contentId));
         }
 
         [Fact]
         public async Task product_creation_integraiton_test()
         {
-            var productId = Guid.NewGuid().ToString();
-            await Bus.PublishAsync(new Commands.V1.CreateProduct
+            var productId = new Faker().Random.Uuid().ToString();
+            var code = new Faker().Commerce.Product();
+
+            await Mediator.Send(new Commands.V1.CreateProduct
             {
                 ProductId = productId,
                 BrandId = 1,
                 BusinessUnitId = 1,
-                Code = "CODE123"
+                Code = code
             });
 
-            WaitUntilProjected(x => x.ProductId == productId);
+            await WaitUntilProjected(x => x.ProductId == productId);
         }
 
         [Fact]
@@ -67,7 +70,7 @@ namespace ProductContext.Integration.Tests
             var doc = Query(x => x.Contents.Any());
 
             var variantId = Guid.NewGuid().ToString();
-            await Bus.PublishAsync(new Commands.V1.AddVariantToProduct
+            await Mediator.Send(new Commands.V1.AddVariantToProduct
             {
                 ProductId = doc.ProductId,
                 VariantId = variantId,
@@ -76,7 +79,7 @@ namespace ProductContext.Integration.Tests
                 VariantTypeValueId = Guid.NewGuid().ToString()
             });
 
-            WaitUntilProjected(x => x.Variants.Any(v => v.ProductVariantId == variantId));
+            await WaitUntilProjected(x => x.Variants.Any(v => v.ProductVariantId == variantId));
         }
     }
 }

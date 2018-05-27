@@ -1,4 +1,5 @@
-﻿using ProductContext.Framework;
+﻿using MediatR;
+using ProductContext.Framework;
 
 namespace ProductContext.Domain.Contracts
 {
@@ -6,7 +7,7 @@ namespace ProductContext.Domain.Contracts
     {
         public static class V1
         {
-            public class CreateProduct : Message
+            public class CreateProduct : IRequest
             {
                 public string Code { get; set; }
 
@@ -17,7 +18,7 @@ namespace ProductContext.Domain.Contracts
                 public int BusinessUnitId { get; set; }
             }
 
-            public class AddContentToProduct : Message
+            public class AddContentToProduct : IRequest
             {
                 public string ProductId { get; set; }
 
@@ -28,7 +29,7 @@ namespace ProductContext.Domain.Contracts
                 public string VariantTypeValueId { get; set; }
             }
 
-            public class AddVariantToProduct : Message
+            public class AddVariantToProduct : IRequest
             {
                 public string ProductId { get; set; }
 

@@ -2,20 +2,15 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-
 using AggregateSource;
 using AggregateSource.EventStore;
 using AggregateSource.EventStore.Resolvers;
 using AggregateSource.EventStore.Snapshots;
-
 using Couchbase.Core;
 using Couchbase.Linq;
-
-using EventStore.ClientAPI;
-
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
-
-using ProductContext.Domain.Contracts;
 using ProductContext.Domain.Products;
 using ProductContext.Domain.Products.Snapshots;
 using ProductContext.Domain.Projections;
@@ -25,52 +20,54 @@ namespace ProductContext.Integration.Tests
 {
     public class ProductIntegrationTestBase
     {
-        private static readonly GetSnapshotStreamName s_getSnapshotStreamName = (type, id) => $"{s_getStreamName(type, id)}-Snapshot";
+        private static readonly GetSnapshotStreamName s_getSnapshotStreamName =
+            (type, id) => $"{s_getStreamName(type, id)}-Snapshot";
+
         private static readonly GetStreamName s_getStreamName = (type, id) => $"{type.Name}-{id}";
         private static readonly Now s_now = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
+        private readonly Func<IBucket> _getBucket;
+        private readonly IServiceProvider _serviceProvider;
 
-        public readonly Func<IBucket> GetBucket;
-        public readonly AsyncRepository<Product> Repository;
+        protected IMediator Mediator;
 
         public ProductIntegrationTestBase()
         {
-            IEventStoreConnection esConnection = Defaults.GetEsConnection("admin", "changeit", "tcp://admin:changeit@127.0.0.1:1113").GetAwaiter().GetResult();
+            var esConnection = Defaults
+                .GetEsConnection("admin", "changeit", "tcp://admin:changeit@127.0.0.1:1113").GetAwaiter().GetResult();
 
-            Bus = new InMemoryBus();
-            var defaultSerializer = new DefaultEventDeserializer();
-            var defaultSnapshotDeserializer = new DefaultSnapshotDeserializer();
-            var concurrentUnitOfWork = new ConcurrentUnitOfWork();
+            _getBucket = Defaults.GetCouchbaseBucket(nameof(ProductContext), "Administrator", "password",
+                "http://localhost:8091");
 
-            Repository = new AsyncRepository<Product>(
-                Product.Factory,
-                concurrentUnitOfWork,
-                esConnection,
-                new EventReaderConfiguration(
-                    new SliceSize(500),
-                    defaultSerializer,
-                    new TypedStreamNameResolver(typeof(Product), s_getStreamName),
-                    new NoStreamUserCredentialsResolver()));
+            var services = new ServiceCollection();
+            services.AddMediatR(typeof(ProductCommandHandlers).Assembly);
 
-            var productSnapshotableRepository = new AsyncSnapshotableRepository<Product>(
-                Product.Factory,
-                concurrentUnitOfWork,
-                esConnection,
-                new EventReaderConfiguration(new SliceSize(500), defaultSerializer, new TypedStreamNameResolver(typeof(Product), s_getStreamName), new NoStreamUserCredentialsResolver()),
-                new AsyncSnapshotReader(esConnection, new SnapshotReaderConfiguration(defaultSnapshotDeserializer, new SnapshotableStreamNameResolver(typeof(Product), s_getSnapshotStreamName), new NoStreamUserCredentialsResolver())));
+            services.AddMediatR(typeof(ProductCommandHandlers).Assembly);
+            services.AddSingleton(p => esConnection);
+            services.AddTransient<IEventDeserializer, DefaultEventDeserializer>();
+            services.AddScoped<ConcurrentUnitOfWork>();
+            services.AddScoped<AsyncRepository<Product>>();
+            services.AddTransient(p => new EventReaderConfiguration(
+                new SliceSize(500),
+                p.GetService<IEventDeserializer>(),
+                new TypedStreamNameResolver(typeof(Product),
+                    p.GetService<GetStreamName>()),
+                new NoStreamUserCredentialsResolver()));
 
-            DateTime GetDatetime() => DateTime.UtcNow;
+            services.AddScoped<AsyncSnapshotableRepository<Product>>();
+            services.AddTransient<IAsyncSnapshotReader, AsyncSnapshotReader>();
+            services.AddTransient(p => new SnapshotReaderConfiguration(
+                new DefaultSnapshotDeserializer(),
+                new SnapshotableStreamNameResolver(typeof(Product),
+                    p.GetService<GetSnapshotStreamName>()),
+                new NoStreamUserCredentialsResolver()));
 
-            var productCommandHandlers = new ProductCommandHandlers(
-                (type, id) => $"{type.Name}-{id}",
-                Repository,
-                productSnapshotableRepository,
-                GetDatetime);
+            services.AddSingleton(s_getStreamName);
+            services.AddSingleton(s_getSnapshotStreamName);
+            services.AddSingleton(s_now);
+            services.AddTransient(provider => Product.Factory);
 
-            Bus.Subscribe<Commands.V1.CreateProduct>(productCommandHandlers);
-            Bus.Subscribe<Commands.V1.AddVariantToProduct>(productCommandHandlers);
-            Bus.Subscribe<Commands.V1.AddContentToProduct>(productCommandHandlers);
-
-            GetBucket = Defaults.GetCouchbaseBucket(nameof(ProductContext), "Administrator", "password", "http://localhost:8091");
+            _serviceProvider = services.BuildServiceProvider();
+            Mediator = The<IMediator>();
 
             Func<string, Task<Aggregate>> getProductAggregate = async streamId =>
             {
@@ -80,41 +77,41 @@ namespace ProductContext.Integration.Tests
                     esConnection,
                     new EventReaderConfiguration(
                         new SliceSize(500),
-                        defaultSerializer,
+                        new DefaultEventDeserializer(),
                         new PassThroughStreamNameResolver(),
                         new NoStreamUserCredentialsResolver()));
 
                 await productRepository.GetAsync(streamId);
-                productRepository.UnitOfWork.TryGet(streamId, out Aggregate aggregate);
+                productRepository.UnitOfWork.TryGet(streamId, out var aggregate);
                 return aggregate;
             };
-            
+
             ProjectionManagerBuilder.With
-                                    .Connection(esConnection)
-                                    .Deserializer(new DefaultEventDeserializer())
-                                    .CheckpointStore(new CouchbaseCheckpointStore(GetBucket))
-                                    .Snaphotter(
-                                        new EventStoreSnapshotter<Aggregate, ProductSnapshot>(
-                                            getProductAggregate,
-                                            () => esConnection,
-                                            e => e.Event.EventNumber > 0 && e.Event.EventNumber % 1 == 0,
-                                            stream => $"{stream}-Snapshot",
-                                            s_now
-                                            )
-                                        )
-                                    .Projections(
-                                        ProjectorDefiner.For<ProductProjection>()
-                                    ).Activate(GetBucket).GetAwaiter().GetResult();
+                .Connection(esConnection)
+                .Deserializer(new DefaultEventDeserializer())
+                .CheckpointStore(new CouchbaseCheckpointStore(_getBucket))
+                .Snaphotter(
+                    new EventStoreSnapshotter<Aggregate, ProductSnapshot>(
+                        getProductAggregate,
+                        () => esConnection,
+                        e => e.Event.EventNumber > 0 && e.Event.EventNumber % 1 == 0,
+                        stream => $"{stream}-Snapshot",
+                        s_now
+                    )
+                )
+                .Projections(
+                    ProjectorDefiner.For<ProductProjection>()
+                ).Activate(_getBucket).GetAwaiter().GetResult();
         }
 
-        public IBus Bus { get; }
+        protected T The<T>() => _serviceProvider.CreateScope().ServiceProvider.GetService<T>();
 
-        public ProductDocument Query(Expression<Func<ProductDocument, bool>> filter)
+        protected ProductDocument Query(Expression<Func<ProductDocument, bool>> filter)
         {
             ProductDocument doc;
             do
             {
-                using (IBucket bucket = GetBucket())
+                using (var bucket = _getBucket())
                 {
                     try
                     {
@@ -125,30 +122,33 @@ namespace ProductContext.Integration.Tests
                         doc = null;
                     }
                 }
-            }
-            while (doc == null);
+            } while (doc == null);
 
             return doc;
         }
 
-        public void WaitUntilProjected(Expression<Func<ProductDocument, bool>> filter)
+        protected Task WaitUntilProjected(Expression<Func<ProductDocument, bool>> filter)
         {
+            var taskCompletionSource = new TaskCompletionSource<ProductDocument>();
+
             ProductDocument doc;
             do
             {
-                using (IBucket bucket = GetBucket())
+                using (var bucket = _getBucket())
                 {
                     try
                     {
                         doc = new BucketContext(bucket).Query<ProductDocument>().FirstOrDefault(filter);
+                        taskCompletionSource.SetResult(doc);
                     }
-                    catch (Exception exception)
+                    catch (Exception ex)
                     {
                         doc = null;
                     }
                 }
-            }
-            while (doc == null);
+            } while (doc == null);
+
+            return taskCompletionSource.Task;
         }
     }
 }
