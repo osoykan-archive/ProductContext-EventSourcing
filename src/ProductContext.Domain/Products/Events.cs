@@ -1,4 +1,4 @@
-﻿using ProductContext.Framework;
+﻿using MediatR;
 
 namespace ProductContext.Domain.Products
 {
@@ -6,7 +6,7 @@ namespace ProductContext.Domain.Products
     {
         public static class V1
         {
-            public class ProductCreated : Message
+            public class ProductCreated : INotification
             {
                 public readonly int BrandId;
                 public readonly int BusinessUnitId;
@@ -22,7 +22,7 @@ namespace ProductContext.Domain.Products
                 }
             }
 
-            public class VariantAddedToProduct : Message
+            public class VariantAddedToProduct : INotification
             {
                 public readonly string Barcode;
                 public readonly string ProductContentId;
@@ -48,7 +48,7 @@ namespace ProductContext.Domain.Products
                 }
             }
 
-            public class ContentAddedToProduct : Message
+            public class ContentAddedToProduct : INotification
             {
                 public readonly string Description;
                 public readonly string ProductContentId;
@@ -74,7 +74,7 @@ namespace ProductContext.Domain.Products
                 }
             }
 
-            public class VariantTypeValueCreated : Message
+            public class VariantTypeValueCreated : INotification
             {
                 public readonly string Code;
                 public readonly string Value;

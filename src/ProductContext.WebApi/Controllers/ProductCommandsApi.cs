@@ -13,20 +13,19 @@ namespace ProductContext.WebApi.Controllers
 
         public ProductCommandsApi(IMediator mediator) => _mediator = mediator;
 
-
         [HttpPut]
         [Route("create")]
         public Task<IActionResult> Put([FromBody] Commands.V1.CreateProduct request) =>
             HandleOrThrow(request, x => _mediator.Send(x));
 
         [HttpPut]
-        [Route("addcontent")]
-        public Task<IActionResult> Put([FromBody] Commands.V1.AddContentToProduct request) =>
+        [Route("/{productId}/contents")]
+        public Task<IActionResult> Put(string productId, [FromBody] Commands.V1.AddContentToProduct request) =>
             HandleOrThrow(request, x => _mediator.Send(x));
 
         [HttpPut]
-        [Route("addvariant")]
-        public Task<IActionResult> Put([FromBody] Commands.V1.AddVariantToProduct request) =>
+        [Route("/{productId}/variants")]
+        public Task<IActionResult> Put(string productId, [FromBody] Commands.V1.AddVariantToProduct request) =>
             HandleOrThrow(request, x => _mediator.Send(x));
 
         private async Task<IActionResult> HandleOrThrow<T>(T request, Func<T, Task> handler)

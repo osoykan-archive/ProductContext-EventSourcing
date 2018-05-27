@@ -6,12 +6,12 @@ namespace ProductContext.Framework
 {
     public static class TypeExtensions
     {
-        private static readonly ConcurrentDictionary<Type, string> shortenedTypeNames = new ConcurrentDictionary<Type, string>();
+        private static readonly ConcurrentDictionary<Type, string> s_shortenedTypeNames = new ConcurrentDictionary<Type, string>();
         private static readonly string s_coreAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
 
         public static string TypeQualifiedName(this Type type)
         {
-            if (shortenedTypeNames.TryGetValue(type, out string shortened))
+            if (s_shortenedTypeNames.TryGetValue(type, out string shortened))
             {
                 return shortened;
             }
@@ -20,7 +20,7 @@ namespace ProductContext.Framework
             shortened = assemblyName.Equals(s_coreAssemblyName)
                 ? type.GetTypeInfo().FullName
                 : $"{type.GetTypeInfo().FullName}, {assemblyName}";
-            shortenedTypeNames.TryAdd(type, shortened);
+            s_shortenedTypeNames.TryAdd(type, shortened);
             return shortened;
         }
     }
