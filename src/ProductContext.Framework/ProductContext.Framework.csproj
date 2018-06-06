@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\lib\AggregateSource\src\Core\AggregateSource.Content.ExplicitRouting\AggregateRootEntity.cs" Link="AggregateRootEntity.cs" />

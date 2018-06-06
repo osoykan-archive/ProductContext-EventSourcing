@@ -1,52 +1,75 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+
 using AggregateSource.EventStore;
 using AggregateSource.EventStore.Snapshots;
+
 using MediatR;
+
 using ProductContext.Domain.Contracts;
 using ProductContext.Framework;
 
 namespace ProductContext.Domain.Products
 {
-    public class ProductCommandHandlers : CommandHandlerBase<Product>,
-        IRequestHandler<Commands.V1.CreateProduct>,
-        IRequestHandler<Commands.V1.AddContentToProduct>,
-        IRequestHandler<Commands.V1.AddVariantToProduct>
+	public class AddContentToProductCommandHandler : AsyncRequestHandler<Commands.V1.AddContentToProduct>
+	{
+		private readonly Now _now;
+		private readonly AsyncSnapshotableRepository<Product> _snapshotableRepository;
 
-    {
-        public ProductCommandHandlers(
-            GetStreamName getStreamName,
-            AsyncRepository<Product> repository,
-            AsyncSnapshotableRepository<Product> snapshotableRepository,
-            Now now) : base(getStreamName, repository, snapshotableRepository, now)
-        {
-        }
+		public AddContentToProductCommandHandler(AsyncSnapshotableRepository<Product> snapshotableRepository, Now now)
+		{
+			_snapshotableRepository = snapshotableRepository;
+			_now = now;
+		}
 
-        public Task Handle(Commands.V1.AddContentToProduct message, CancellationToken cancellationToken) =>
-            Update(message.ProductId,
-                async product =>
-                {
-                    product.AddContent(message.ProductContentId, message.Description, message.VariantTypeValueId);
-                });
+		protected override async Task Handle(Commands.V1.AddContentToProduct request, CancellationToken cancellationToken) =>
+			await _snapshotableRepository.UpdateWhen(request.ProductId, _now, async product =>
+			{
+				product.AddContent(request.ProductContentId, request.Description, request.VariantTypeValueId);
+			});
+	}
 
-        public Task Handle(Commands.V1.AddVariantToProduct message, CancellationToken cancellationToken) =>
-            Update(message.ProductId,
-                async product =>
-                {
-                    product.AddVariant(message.ContentId, message.VariantId, message.Barcode,
-                        message.VariantTypeValueId);
-                });
+	public class AddVariantToProductCommandHandler : AsyncRequestHandler<Commands.V1.AddVariantToProduct>
+	{
+		private readonly Now _now;
+		private readonly AsyncSnapshotableRepository<Product> _snapshotableRepository;
 
-        public Task Handle(Commands.V1.CreateProduct command, CancellationToken cancellationToken) =>
-            Add(async repository =>
-            {
-                var product = Product.Create(
-                    command.ProductId,
-                    command.BrandId,
-                    command.Code,
-                    command.BusinessUnitId);
+		public AddVariantToProductCommandHandler(Now now, AsyncSnapshotableRepository<Product> snapshotableRepository)
+		{
+			_now = now;
+			_snapshotableRepository = snapshotableRepository;
+		}
 
-                repository.Add(command.ProductId, product);
-            });
-    }
+		protected override async Task Handle(Commands.V1.AddVariantToProduct request, CancellationToken cancellationToken) =>
+			await _snapshotableRepository.UpdateWhen(request.ProductId, _now, async product =>
+			{
+				product.AddVariant(request.ContentId, request.VariantId, request.Barcode, request.VariantTypeValueId);
+			});
+	}
+
+	public class ProductCommandHandlers : AsyncRequestHandler<Commands.V1.CreateProduct>
+	{
+		private readonly Now _now;
+		private readonly AsyncRepository<Product> _repository;
+
+		public ProductCommandHandlers(Now now, AsyncRepository<Product> repository)
+		{
+			_now = now;
+			_repository = repository;
+		}
+
+		protected override async Task Handle(Commands.V1.CreateProduct command, CancellationToken cancellationToken)
+		{
+			Product product = Product.Create(
+				command.ProductId,
+				command.BrandId,
+				command.Code,
+				command.BusinessUnitId);
+
+			await _repository.AddWhen(product, _now, async (p, repository) =>
+			{
+				repository.Add(p.ProductId, p);
+			});
+		}
+	}
 }
