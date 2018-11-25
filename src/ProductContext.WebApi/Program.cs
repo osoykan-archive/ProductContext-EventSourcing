@@ -1,20 +1,18 @@
-﻿using Microsoft.AspNetCore;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
 namespace ProductContext.WebApi
 {
-	public class Program
-	{
-		public static int Main(string[] args)
-		{
-			BuildWebHost(args).Run();
-			return 0;
-		}
-
-		private static IWebHost BuildWebHost(string[] args) =>
-			WebHost.CreateDefaultBuilder(args)
-			       .UseStartup<Startup>()
-			       .UseKestrel()
-			       .Build();
-	}
+    public static class Program
+    {
+        public static Task Main(string[] args)
+        {
+            return WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()
+                .UseKestrel()
+                .Build()
+                .RunAsync();
+        }
+    }
 }

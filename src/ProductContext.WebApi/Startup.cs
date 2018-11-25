@@ -33,7 +33,7 @@ namespace ProductContext.WebApi
 
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
+            IConfigurationBuilder builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", false, true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
@@ -47,8 +47,10 @@ namespace ProductContext.WebApi
 
         private IHostingEnvironment HostingEnvironment { get; }
 
-        public void ConfigureServices(IServiceCollection services) =>
+        public void ConfigureServices(IServiceCollection services)
+        {
             ConfigureServicesAsync(services).GetAwaiter().GetResult();
+        }
 
         private async Task ConfigureServicesAsync(IServiceCollection services)
         {
@@ -56,7 +58,7 @@ namespace ProductContext.WebApi
             ConfigureLogging(services);
             ConfigureApplication(services);
 
-            InitProjections().Wait();
+            await InitProjections();
         }
 
         private static void ConfigureMvc(IServiceCollection services)
@@ -101,16 +103,14 @@ namespace ProductContext.WebApi
         {
             services.AddLogging(builder =>
             {
-                var loggerCfg = new LoggerConfiguration()
+                LoggerConfiguration loggerCfg = new LoggerConfiguration()
                     .MinimumLevel.Debug()
                     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                     .Enrich.FromLogContext();
 
                 if (HostingEnvironment.IsDevelopment())
-                {
                     loggerCfg
                         .WriteTo.Console();
-                }
 
                 Log.Logger = loggerCfg.CreateLogger();
                 builder.AddSerilog(Log.Logger);
@@ -119,31 +119,33 @@ namespace ProductContext.WebApi
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             app.UseSwagger()
                 .UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); })
                 .UseMvc();
         }
 
-        private async Task<IEventStoreConnection> GetEsConnection() => await Defaults.GetEsConnection(
-            Configuration["Data:EventStore:Username"],
-            Configuration["Data:EventStore:Password"],
-            Configuration["Data:EventStore:Url"]);
+        private async Task<IEventStoreConnection> GetEsConnection()
+        {
+            return await Defaults.GetEsConnection(
+                Configuration["Data:EventStore:Username"],
+                Configuration["Data:EventStore:Password"],
+                Configuration["Data:EventStore:Url"]);
+        }
 
-        private Func<IBucket> GetCouchbaseBucket() => Defaults.GetCouchbaseBucket(nameof(ProductContext),
-            Configuration["Data:Couchbase:Username"],
-            Configuration["Data:Couchbase:Password"],
-            Configuration["Data:Couchbase:Url"]);
+        private Func<IBucket> GetCouchbaseBucket()
+        {
+            return Defaults.GetCouchbaseBucket(nameof(ProductContext),
+                Configuration["Data:Couchbase:Username"],
+                Configuration["Data:Couchbase:Password"],
+                Configuration["Data:Couchbase:Url"]);
+        }
 
         private async Task InitProjections()
         {
-            var esConnection = await GetEsConnection();
-
-            var getBucket = GetCouchbaseBucket();
+            IEventStoreConnection esConnection = await GetEsConnection();
+            Func<IBucket> getBucket = GetCouchbaseBucket();
 
             Func<string, Task<Aggregate>> getProductAggregate = async streamId =>
             {

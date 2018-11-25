@@ -11,15 +11,15 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void add_content_with_same_stream_id_should_be_idempotent()
         {
-            var productId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
             const string code = "PRD12";
-            var firstContentId = Guid.NewGuid().ToString();
+            string firstContentId = Guid.NewGuid().ToString();
             const string firstContentDesc = "%100 Cotton TShirt";
-            var colorId = Guid.NewGuid().ToString();
+            string colorId = Guid.NewGuid().ToString();
 
-            var secContentId = firstContentId;
+            string secContentId = firstContentId;
             var secContentDesc = "%50 Cotton TShirt";
-            var secColorId = Guid.NewGuid().ToString();
+            string secColorId = Guid.NewGuid().ToString();
 
             new CommandScenarioFor<Product>(Product.Factory)
                 .Given(
@@ -34,14 +34,14 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void add_existing_variant_to_product_shold_be_idempotent()
         {
-            var productId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
             const string code = "PRD12";
-            var contentId = Guid.NewGuid().ToString();
+            string contentId = Guid.NewGuid().ToString();
             const string contentDesc = "%100 Cotton TShirt";
-            var colorId = Guid.NewGuid().ToString();
-            var variantId = Guid.NewGuid().ToString();
+            string colorId = Guid.NewGuid().ToString();
+            string variantId = Guid.NewGuid().ToString();
             const string barcode = "BARCODE123";
-            var sizeId = Guid.NewGuid().ToString();
+            string sizeId = Guid.NewGuid().ToString();
 
             new CommandScenarioFor<Product>(Product.Factory)
                 .Given(
@@ -58,13 +58,13 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void adding_content_product_but_already_existed_color_should_be_idempotent()
         {
-            var productId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
             const string code = "PRD12";
-            var firstContentId = Guid.NewGuid().ToString();
+            string firstContentId = Guid.NewGuid().ToString();
             const string firstContentDesc = "%100 Cotton TShirt";
-            var colorId = Guid.NewGuid().ToString();
+            string colorId = Guid.NewGuid().ToString();
 
-            var secContentId = Guid.NewGuid().ToString();
+            string secContentId = Guid.NewGuid().ToString();
             const string secContentDesc = "%50 Cotton TShirt";
 
             new CommandScenarioFor<Product>(Product.Factory)
@@ -80,16 +80,16 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void adding_same_barcode_to_the_existing_product_while_variant_creation_should_be_itempotent()
         {
-            var productId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
             const string code = "PRD12";
-            var contentId = Guid.NewGuid().ToString();
+            string contentId = Guid.NewGuid().ToString();
             const string contentDesc = "%100 Cotton TShirt";
-            var colorId = Guid.NewGuid().ToString();
-            var variantId = Guid.NewGuid().ToString();
+            string colorId = Guid.NewGuid().ToString();
+            string variantId = Guid.NewGuid().ToString();
             const string barcode = "BARCODE123";
-            var sizeId = Guid.NewGuid().ToString();
+            string sizeId = Guid.NewGuid().ToString();
 
-            var anotherVariantId = Guid.NewGuid().ToString();
+            string anotherVariantId = Guid.NewGuid().ToString();
 
             new CommandScenarioFor<Product>(Product.Factory)
                 .Given(
@@ -106,16 +106,16 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void adding_same_size_to_the_existing_product_while_variant_creation_should_be_itempotent()
         {
-            var productId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
             const string code = "PRD12";
-            var contentId = Guid.NewGuid().ToString();
+            string contentId = Guid.NewGuid().ToString();
             const string contentDesc = "%100 Cotton TShirt";
-            var colorId = Guid.NewGuid().ToString();
-            var variantId = Guid.NewGuid().ToString();
+            string colorId = Guid.NewGuid().ToString();
+            string variantId = Guid.NewGuid().ToString();
             const string barcode = "BARCODE123";
-            var sizeId = Guid.NewGuid().ToString();
+            string sizeId = Guid.NewGuid().ToString();
 
-            var anotherVariantId = Guid.NewGuid().ToString();
+            string anotherVariantId = Guid.NewGuid().ToString();
             const string anotherBaroce = "BARCODE1234";
 
             new CommandScenarioFor<Product>(Product.Factory)
@@ -133,12 +133,12 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void adding_variant_to_product_but_not_existing_content_should_throw_exception()
         {
-            var productId = Guid.NewGuid().ToString();
-            var productContentId = Guid.NewGuid().ToString();
-            var variantId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
+            string productContentId = Guid.NewGuid().ToString();
+            string variantId = Guid.NewGuid().ToString();
             const string code = "PRD12";
             const string barcode = "BARCODE123";
-            var sizeId = Guid.NewGuid().ToString();
+            string sizeId = Guid.NewGuid().ToString();
 
             new CommandScenarioFor<Product>(Product.Factory)
                 .Given(
@@ -152,10 +152,10 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void should_accept_content_adding_to_product()
         {
-            var productId = Guid.NewGuid().ToString();
-            var productContentId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
+            string productContentId = Guid.NewGuid().ToString();
             const string contentDescription = "%100 Cotton TShirt";
-            var variantTypeValueId = Guid.NewGuid().ToString();
+            string variantTypeValueId = Guid.NewGuid().ToString();
             const string code = "PRD12";
 
             new CommandScenarioFor<Product>(Product.Factory)
@@ -169,7 +169,7 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void should_create_a_product()
         {
-            var productId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
             var message = new Events.V1.ProductCreated(productId, "PRDCT1234", 1, 2);
             new ConstructorScenarioFor<Product>(() =>
                     Product.Create(
@@ -184,14 +184,14 @@ namespace ProductContext.Domain.Tests.Scenarios
         [Fact]
         public void variant_should_be_added_to_existing_product_and_content()
         {
-            var productId = Guid.NewGuid().ToString();
-            var productContentId = Guid.NewGuid().ToString();
+            string productId = Guid.NewGuid().ToString();
+            string productContentId = Guid.NewGuid().ToString();
             const string contentDescription = "%100 Cotton TShirt";
-            var colorId = Guid.NewGuid().ToString();
-            var variantId = Guid.NewGuid().ToString();
+            string colorId = Guid.NewGuid().ToString();
+            string variantId = Guid.NewGuid().ToString();
             const string code = "PRD12";
             const string barcode = "BARCODE123";
-            var sizeId = Guid.NewGuid().ToString();
+            string sizeId = Guid.NewGuid().ToString();
 
             new CommandScenarioFor<Product>(Product.Factory)
                 .Given(
