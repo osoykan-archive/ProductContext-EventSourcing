@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CompareNETObjects" Version="4.57.0" />
+    <PackageReference Include="CompareNETObjects" Version="4.65.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\AggregateSource\AggregateSource.csproj" />

@@ -9,9 +9,9 @@ using Couchbase.Core;
 using EventStore.ClientAPI;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NodaTime;
 using ProductContext.Domain.Products;
 using ProductContext.Domain.Products.Snapshots;
@@ -25,13 +25,12 @@ namespace ProductContext.WebApi
 {
     public class Startup
     {
-        private static readonly GetSnapshotStreamName s_getSnapshotStreamName =
-            (type, id) => $"{s_sGetStreamName(type, id)}-Snapshot";
+        private static readonly GetSnapshotStreamName s_getSnapshotStreamName = (type, id) => $"{s_sGetStreamName(type, id)}-Snapshot";
 
         private static readonly GetStreamName s_sGetStreamName = (type, id) => $"{type.Name}-{id}";
         private static readonly Now s_sNow = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
 
-        public Startup(IHostingEnvironment env)
+        public Startup(IHostEnvironment env)
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
@@ -45,7 +44,7 @@ namespace ProductContext.WebApi
 
         private IConfiguration Configuration { get; }
 
-        private IHostingEnvironment HostingEnvironment { get; }
+        private IHostEnvironment HostingEnvironment { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -117,7 +116,7 @@ namespace ProductContext.WebApi
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostEnvironment env)
         {
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 

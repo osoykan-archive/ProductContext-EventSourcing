@@ -14,9 +14,9 @@ namespace ProductContext.Domain.Projections
     {
         public ProductProjection()
         {
-            When<Envelope<Events.V1.ProductCreated>>((bucket, e) =>
+            When<Envelope<Events.V1.ProductCreated>>( async (bucket, e) =>
             {
-                bucket.InsertAsync(new Document<ProductDocument>
+                await bucket.InsertAsync(new Document<ProductDocument>
                 {
                     Id = e.Message.ProductId,
                     Content = new ProductDocument
