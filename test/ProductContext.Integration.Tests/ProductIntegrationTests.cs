@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-
-using AggregateSource;
-
 using Bogus;
 
 using Couchbase.Core;
-
-using EventStore.ClientAPI;
-
 using ProductContext.Domain.Contracts;
 using ProductContext.Domain.Projections;
 using ProductContext.Framework;
@@ -33,7 +27,7 @@ namespace ProductContext.Integration.Tests
 		[Fact]
 		public async Task Docker_EventStore_Should_Work()
 		{
-			IEventStoreConnection esConnection = await Defaults.GetEsConnection("admin", "changeit", "tcp://admin:changeit@127.0.0.1:1113");
+			var esConnection = await Defaults.GetEsConnection("admin", "changeit", "tcp://admin:changeit@127.0.0.1:1113");
 			Assert.NotNull(esConnection);
 		}
 
