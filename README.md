@@ -34,7 +34,7 @@ You can run tests afterwards.
 
 # Domain Model
 
-[WebEventStorming](https://webeventstorming.com/) is used for Event Storming while modeling domain model. 
+[StoryStream](https://app.getstorystream.com/) is used for Event Storming while modeling domain model. 
 
 Domain model basically provides a Product which has a Color (Content) and it's Variants.
 
