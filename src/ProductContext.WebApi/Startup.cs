@@ -9,9 +9,12 @@ using Couchbase.Core;
 using EventStore.ClientAPI;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using NodaTime;
 using ProductContext.Domain.Products;
 using ProductContext.Domain.Products.Snapshots;
@@ -30,7 +33,7 @@ namespace ProductContext.WebApi
         private static readonly GetStreamName s_sGetStreamName = (type, id) => $"{type.Name}-{id}";
         private static readonly Now s_sNow = () => SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc();
 
-        public Startup(IHostEnvironment env)
+        public Startup(IWebHostEnvironment env)
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
@@ -44,7 +47,7 @@ namespace ProductContext.WebApi
 
         private IConfiguration Configuration { get; }
 
-        private IHostEnvironment HostingEnvironment { get; }
+        private IWebHostEnvironment HostingEnvironment { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -53,19 +56,20 @@ namespace ProductContext.WebApi
 
         private async Task ConfigureServicesAsync(IServiceCollection services)
         {
-            ConfigureMvc(services);
+            services.AddControllers();
+
+            ConfigureSwagger(services);
             ConfigureLogging(services);
             ConfigureApplication(services);
 
             await InitProjections();
         }
 
-        private static void ConfigureMvc(IServiceCollection services)
+        private static void ConfigureSwagger(IServiceCollection services)
         {
-            services.AddMvc();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info {Title = "Event Sourced Product Creation", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Event Sourced Product Creation", Version = "v1" });
             });
         }
 
@@ -116,13 +120,20 @@ namespace ProductContext.WebApi
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+                app.UseDeveloperExceptionPage();
 
             app.UseSwagger()
-                .UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); })
-                .UseMvc();
+                .UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); });
+
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapGet("/healthcheck", async context => await context.Response.WriteAsync("Api is up."));
+            });
         }
 
         private async Task<IEventStoreConnection> GetEsConnection()
