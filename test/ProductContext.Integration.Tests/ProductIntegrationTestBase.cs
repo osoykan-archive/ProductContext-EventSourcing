@@ -42,10 +42,10 @@ namespace ProductContext.Integration.Tests
                 .OnDefaultEndpoints()
                 .RunInMemory();
             var node = nodeBuilder.Build();
-            var ready = await node.StartAndWaitUntilReady();
+            var ready = await node.StartAsync(true);
 
             var connection = EmbeddedEventStoreConnection.Create(ready);
-         
+
             //var esConnection = await Defaults.GetEsConnection("admin", "changeit", "tcp://admin:changeit@127.0.0.1:1113");
             var esConnection = connection;
 

@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EventStore.Client" Version="5.0.5" />
+    <PackageReference Include="EventStore.Client" Version="21.2.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\AggregateSource\AggregateSource.csproj" />

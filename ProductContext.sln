@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductContext.WebApi", "src\ProductContext.WebApi\ProductContext.WebApi.csproj", "{9CC18183-8080-4DE3-BDC4-8AFD3A909CD1}"
 EndProject
@@ -59,6 +59,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "couchbase", "couchbase", "{
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		lib\Value\Value\Value.Shared.projitems*{0093348b-68ce-4f8b-9fd6-faf532140f11}*SharedItemsImports = 5
 		lib\Value\Value\Value.Shared.projitems*{44709b35-26e8-4588-a87a-1727cdb11255}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
