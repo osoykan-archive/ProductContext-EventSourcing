@@ -26,6 +26,7 @@ namespace ProductContext.Domain.Products
 			await _snapshotableRepository.UpdateWhen(request.ProductId, _now, async product =>
 			{
 				product.AddContent(request.ProductContentId, request.Description, request.VariantTypeValueId);
+				await Task.CompletedTask;
 			});
 	}
 
@@ -44,6 +45,7 @@ namespace ProductContext.Domain.Products
 			await _snapshotableRepository.UpdateWhen(request.ProductId, _now, async product =>
 			{
 				product.AddVariant(request.ContentId, request.VariantId, request.Barcode, request.VariantTypeValueId);
+				await Task.CompletedTask;
 			});
 	}
 
@@ -69,6 +71,7 @@ namespace ProductContext.Domain.Products
 			await _repository.AddWhen(product, _now, async (p, repository) =>
 			{
 				repository.Add(p.ProductId, p);
+				await Task.CompletedTask;
 			});
 		}
 	}
